@@ -1,0 +1,31 @@
+#!/bin/sh                                                           
+                                                                    
+export tf=`mktemp`                                                  
+                                                                    
+echo "--- START sysinfo ---" >>$tf                                  
+echo -en "Hostname = " >> $tf                                       
+uname -n >> $tf                                                     
+echo -en "Gluon Release = " >> $tf                                  
+cat /lib/gluon/release >> $tf                                       
+echo -en "Uptime = " >> $tf                                         
+uptime >> $tf                                                       
+echo -en "Timestamp = " >> $tf                                      
+date >> $tf                                                         
+echo "--- END sysinfo ---\n" >>$tf                                  
+echo >> $tf                                                         
+                                                                    
+cmd() {                                                             
+        echo "--- START $* ---" >> $tf                              
+        $* 2>&1 >> $tf                                              
+        echo "--- END ($?) $* ---" >> $tf                           
+        echo >> $tf                                                 
+}                                                                   
+                                                                    
+cmd ip addr show                                                    
+cmd ip route show                                                   
+cmd iw phy wlan0 info                                               
+cmd iw dev wlan0 info                                               
+cmd iw dev wlan0 station dump                                       
+cmd batctl gwl                                                      
+                                                                    
+echo "wrote $tf"
