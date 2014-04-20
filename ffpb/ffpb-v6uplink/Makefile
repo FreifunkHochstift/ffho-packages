@@ -8,7 +8,7 @@ PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/gluon-core
+define Package/ffpb-v6uplink
   SECTION:=ffpb
   CATEGORY:=ffpb
   TITLE:=FFPB-IPv6-Uplink
@@ -29,8 +29,8 @@ endef
 define Build/Compile
 endef
 
-define Package/gluon-core/install
+define Package/ffpb-v6uplink/install
 	$(CP) ./files/* $(1)/
 endef
 
-$(eval $(call BuildPackage,gluon-core))
+$(eval $(call BuildPackage,ffpb-v6uplink))
