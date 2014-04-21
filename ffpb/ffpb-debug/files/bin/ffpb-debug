@@ -1,33 +1,4 @@
-#!/bin/sh                                                           
-
-export tf=`mktemp`                                                  
-                                                                    
-echo "--- START sysinfo ---" >>$tf                                  
-echo -en "Hostname = " >> $tf                                       
-uname -n >> $tf                                                     
-echo -en "Gluon Release = " >> $tf                                  
-cat /lib/gluon/release >> $tf                                       
-echo -en "Uptime = " >> $tf                                         
-uptime >> $tf                                                       
-echo -en "Timestamp = " >> $tf                                      
-date >> $tf                                                         
-echo "--- END sysinfo ---\n" >>$tf                                  
-echo >> $tf                                                         
-                                                                    
-cmd() {                                                             
-        echo "--- START $* ---" >> $tf                              
-        $* 2>&1 >> $tf                                              
-        echo "--- END ($?) $* ---" >> $tf                           
-        echo >> $tf                                                 
-}                                                                   
-                                                                    
-cmd ip addr show                                                    
-cmd ip route show                                                   
-cmd iw phy
-cmd iw dev wlan0 info                                               
-cmd iw dev wlan0 station dump                                       
-cmd batctl gwl                                                      
-cmd logread
+#!/bin/sh
 
 local=false
 while getopts l opt
@@ -38,16 +9,42 @@ do
 	esac
 done
 
-echo "Report stored in: $tf"
+if ! $local ; then
+	export tf="$(mktemp -t ffpb-debug.XXXXXX)"
+	exec 3>&2 >"$tf" 2>&1
+fi
+
+sysinfo() {
+	echo -en "Hostname = "
+	uname -n
+	echo -en "Gluon Release = "
+	cat /lib/gluon/release
+	echo -en "Uptime = "
+	uptime
+	echo -en "Timestamp = "
+	date
+}
+
+cmd() {
+        echo "--- START $* ---"
+        "$@"
+        echo "--- END ($?) $* ---"
+        echo
+}
+
+cmd sysinfo
+cmd ip addr show
+cmd ip route show
+cmd iw phy
+cmd iw dev wlan0 info
+cmd iw dev wlan0 station dump
+cmd batctl gwl
+
 if $local ; then
-	echo "No information has been sent to the ffpb-team."
+	echo "I will not send any information to ffpb-team"    >&3
 else
-	echo "Sending report to ffpb-team ..."
-	code=`gzip -c $tf | nc debugreport.paderborn.freifunk.net 1337`
-	if [ $? -eq 0 ]; then
-		echo "Report number: "
-		echo $code
-	else
-		echo "Failed to send report :("
-	fi
+	echo "Sending report to ffpb-team"                     >&3
+	code="$(nc debug.paderborn.freifunk.net 1337 < "$tf")" >&3
+	echo "Report number: $code"                            >&3
+	#TODO: rm "$tf"
 fi
