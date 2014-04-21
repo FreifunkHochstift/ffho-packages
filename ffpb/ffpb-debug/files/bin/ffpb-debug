@@ -41,11 +41,11 @@ cmd iw dev wlan0 station dump
 cmd batctl gwl
 cmd logread
 
-exec >&3 2>&3
-
 if $local ; then
 	echo "No information has been sent to the ffpb-team."
 else
+	exec >&3 2>&1
+
 	echo "Report stored in: $tf"
 	echo "Sending report to ffpb-team ..."
 	code=`gzip -c $tf | nc debugreport.paderborn.freifunk.net 1337`
