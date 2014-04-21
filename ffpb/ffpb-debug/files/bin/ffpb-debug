@@ -38,12 +38,16 @@ do
 	esac
 done
 
+echo "Report stored in: $tf"
 if $local ; then
-	cat $tf
-	echo "I will not send any information to ffpb-team"
+	echo "No information has been sent to the ffpb-team."
 else
-	echo "Sending report to ffpb-team"
-	code=`nc debug.paderborn.freifunk.net 1337 < $tf`
-	echo "Report number:"
-	echo $code
+	echo "Sending report to ffpb-team ..."
+	code=`gzip -c $tf | nc debugreport.paderborn.freifunk.net 1337`
+	if [ $? -eq 0 ]; then
+		echo "Report number: "
+		echo $code
+	else
+		echo "Failed to send report :("
+	fi
 fi
