@@ -27,6 +27,7 @@ cmd iw phy phy0 info
 cmd iw dev wlan0 info                                               
 cmd iw dev wlan0 station dump                                       
 cmd batctl gwl                                                      
+cmd logread
 
 local=false
 while getopts l opt
