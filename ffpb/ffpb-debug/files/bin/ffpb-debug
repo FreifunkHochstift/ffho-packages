@@ -35,16 +35,25 @@ cmd() {
 cmd sysinfo
 cmd ip addr show
 cmd ip route show
-cmd iw phy
+cmd iw phy phy0 info
 cmd iw dev wlan0 info
 cmd iw dev wlan0 station dump
 cmd batctl gwl
+cmd logread
+
+exec >&3 2>&3
 
 if $local ; then
-	echo "I will not send any information to ffpb-team"    >&3
+	echo "No information has been sent to the ffpb-team."
 else
-	echo "Sending report to ffpb-team"                     >&3
-	code="$(nc debug.paderborn.freifunk.net 1337 < "$tf")" >&3
-	echo "Report number: $code"                            >&3
+	echo "Report stored in: $tf"
+	echo "Sending report to ffpb-team ..."
+	code=`gzip -c $tf | nc debugreport.paderborn.freifunk.net 1337`
+	if [ $? -eq 0 ]; then
+		echo "Report number: "
+		echo $code
+	else
+		echo "Failed to send report :("
+	fi
 	#TODO: rm "$tf"
 fi
