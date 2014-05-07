@@ -40,6 +40,8 @@ cmd iw dev wlan0 info
 cmd iw dev wlan0 station dump
 cmd iw dev wlan0-1 station dump
 cmd batctl gwl
+cmd batctl tl
+killall -USR1 fastd 2>/dev/null
 cmd logread
 
 if $local ; then
