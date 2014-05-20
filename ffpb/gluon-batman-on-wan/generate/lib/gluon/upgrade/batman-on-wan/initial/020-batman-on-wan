@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+uci_add network interface mesh_wan
+uci_set network mesh_wan ifname 'br-wan'
+uci_set network mesh_wan proto 'batadv'
+uci_set network mesh_wan mesh 'bat0'
+uci_set network mesh_wan auto @batman_on_wan@
+
+uci_commit network
