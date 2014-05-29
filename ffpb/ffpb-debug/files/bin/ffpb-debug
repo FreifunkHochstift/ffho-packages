@@ -56,7 +56,9 @@ else
 		echo "Report number: "
 		echo $code
 	else
-		echo "Failed to send report :("
+		echo "Failed to send report :( but storing the file and sending it later \o/"
+		mkdir -p /var/cache/ff/debug
+		gzip -c "$tf" > /var/cache/ff/debug/stored.ff-debug.gz
 	fi
 	#TODO: rm "$tf"
 fi
