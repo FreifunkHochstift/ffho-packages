@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=ffpb-batman-on-wan
-PKG_VERSION:=1
+PKG_NAME := gluon-batman-on-wan
+PKG_VERSION := 2
 PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
@@ -12,7 +12,7 @@ define Package/gluon-batman-on-wan
   SECTION:=gluon
   CATEGORY:=Gluon
   TITLE:=Option to enable mesh (batadv) on WAN port
-  DEPENDS:=+gluon-core +gluon-mesh-batman-adv
+  DEPENDS:=+gluon-core +gluon-mesh-batman-adv +luci-lib-core
 endef
 
 define Package/gluon-batman-on-wan/description
@@ -36,7 +36,7 @@ define Build/Compile
 endef
 
 define Package/gluon-batman-on-wan/install
-	$(GLUON_GENERATE) ./generate/* $(1)/
+	$(CP) ./files/* $(1)/
 
 	$(INSTALL_DIR) $(1)/lib/gluon
 endef
