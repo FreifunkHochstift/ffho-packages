@@ -1,0 +1,1 @@
+*/15 * * * * /bin/ffpb-send-stored-debug
