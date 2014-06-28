@@ -49,14 +49,12 @@ if $local ; then
 else
 	exec >&3 2>&1
 
-	echo "Report stored in: $tf"
-	echo "Sending report to ffpb-team ..."
+	echo "Sending report (stored in $tf) to ffpb-team ..."
 	HOST=$(lua -e 'print(require("gluon.site_config").debugserver.host)')
 	PORT=$(lua -e 'print(require("gluon.site_config").debugserver.port)')
 	code=`gzip -c $tf | nc $HOST $PORT`
 	if [ $? -eq 0 ]; then
-		echo "Report number: "
-		echo $code
+		echo "Report-ID: $code"
 	else
 		echo "Failed to send report :( but storing the file and sending it later \o/"
 		mkdir -p /var/cache/ff/debug
