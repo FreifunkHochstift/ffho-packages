@@ -11,8 +11,9 @@ if [ ! -f "{$stored_debug_file}" ];then
 fi
 
 #send stored debug data to server
-
-code=$(nc debugreport.paderborn.freifunk.net 1337 < "${stored_debug_file}")
+HOST=$(lua -e 'print(require("gluon.site_config").debugserver.host)')
+PORT=$(lua -e 'print(require("gluon.site_config").debugserver.port)')
+code=$(nc $HOST $PORT < "${stored_debug_file}")
 if [ $? = 0 ]; then
         echo "Report number: ${code}" > /var/cache/ff/debug/lastreport.code
 	rm -f -- "${stored_debug_file}"
