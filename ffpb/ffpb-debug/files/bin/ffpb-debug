@@ -51,7 +51,9 @@ else
 
 	echo "Report stored in: $tf"
 	echo "Sending report to ffpb-team ..."
-	code=`gzip -c $tf | nc debugreport.paderborn.freifunk.net 1337`
+	HOST=$(lua -e 'print(require("gluon.site_config").debugserver.host)')
+	PORT=$(lua -e 'print(require("gluon.site_config").debugserver.port)')
+	code=`gzip -c $tf | nc $HOST $PORT`
 	if [ $? -eq 0 ]; then
 		echo "Report number: "
 		echo $code
