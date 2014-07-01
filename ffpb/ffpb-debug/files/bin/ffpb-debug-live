@@ -1,0 +1,36 @@
+#!/bin/sh
+
+if [ "$1" == "--send" ]; then
+	ts=$(date +%s)
+
+	mac=$(lua -e 'print(require("gluon.sysconfig").primary_mac)')
+	target_host=$(lua -e 'print(require("gluon.site_config").debugserver.host)')
+	target_port=$(lua -e 'print(require("gluon.site_config").debugserver.liveport)')
+
+	tf=/tmp/live-debug.dat
+	datapath="ffpb.debug.${mac}"
+
+	cat /proc/net/dev | awk "/\\s*wlan0:/ { print \"${datapath}.wifi.rx \", \$2, \" $ts\"; print \"${datapath}.wifi.tx \", \$10, \" $ts\"; }" >> $tf
+	cat /proc/net/dev | awk "/\\s*wlan0-1:/ { print \"${datapath}.mesh.rx \",  \$2, \" $ts\"; print \"${datapath}.mesh.tx \", \$10, \" $ts\"; }" >> $tf
+	cat /proc/net/dev | awk "/\\s*eth0:/ { print \"${datapath}.uplink.rx \",  \$2, \" $ts\"; print \"${datapath}.uplink.tx \", \$10, \" $ts\"; }" >> $tf
+
+	associations=$(iwinfo wlan0 assoclist | grep dBm | wc -l)
+	echo "${datapath}.associations $associations $ts" >> $tf
+
+	clients=$(iw dev wlan0 station dump | grep ^Station | wc -l)
+	echo "${datapath}.clients $clients $ts" >> $tf
+
+	neighbours=$(iw dev wlan0-1 station dump | grep ^Station | wc -l)
+	echo "${datapath}.neighbours $neighbours $ts" >> $tf
+
+	nc "${target_host}" "${target_port}" < $tf && rm $tf
+	exit 0
+fi
+
+echo "Starting live-debug ... press Ctrl+C to abort."
+while true; do
+	date
+	$0 --send
+	sleep 5
+done
+
