@@ -36,7 +36,7 @@ cmd() {
         echo
 }
 
-read() {
+read_file_content() {
 	echo "--- START OF FILE CONTENT ($*) ---"
 	/bin/cat "$@"
 	echo "--- END OF FILE CONTENT ($*) ---"
@@ -59,12 +59,12 @@ if [ -d $ATH9K_DEBUGFS_DIR ] ; then
 	# data required for gluon "wifi blackout" bug-reports as requested in
 	# https://github.com/freifunk-gluon/gluon/issues/130 
 	for filename in reset queues interrupt ; do
-		read "${ATH9K_DEBUGFS_DIR}/${filename}"
+		read_file_content "${ATH9K_DEBUGFS_DIR}/${filename}"
 	done
-	sleep 10 && read "${ATH9K_DEBUGFS_DIR}/interrupt"
+	sleep 10 && read_file_content "${ATH9K_DEBUGFS_DIR}/interrupt"
 	# ... and some additional debug data
 	for filename in ani base_eeprom dma dump_nfcal misc modal_eeprom phy_err recv xmit ; do
-		read "${ATH9K_DEBUGFS_DIR}/${filename}"
+		read_file_content "${ATH9K_DEBUGFS_DIR}/${filename}"
 	done
 fi
 cmd batctl gwl
