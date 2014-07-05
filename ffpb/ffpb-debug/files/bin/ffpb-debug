@@ -1,5 +1,7 @@
 #!/bin/sh
 
+ATH9K_DEBUGFS_DIR="/sys/kernel/debug/ieee80211/phy0/ath9k"
+
 local=false
 while getopts l opt
 do
@@ -19,6 +21,8 @@ sysinfo() {
 	uname -n
 	echo -en "Gluon Release = "
 	cat /lib/gluon/release
+	echo -en "Node Model = "
+	cat /tmp/sysinfo/model
 	echo -en "Uptime = "
 	uptime
 	echo -en "Timestamp = "
@@ -32,6 +36,13 @@ cmd() {
         echo
 }
 
+read() {
+	echo "--- START OF FILE CONTENT ($*) ---"
+	/bin/cat "$@"
+	echo "--- END OF FILE CONTENT ($*) ---"
+	echo
+}
+
 cmd sysinfo
 cmd ip addr show
 cmd ip route show
@@ -39,6 +50,23 @@ cmd iw phy phy0 info
 cmd iw dev wlan0 info
 cmd iw dev wlan0 station dump
 cmd iw dev wlan0-1 station dump
+cmd /usr/bin/iwinfo phy0 scan
+cmd /usr/bin/iwinfo wlan0 info
+cmd /usr/bin/iwinfo wlan0-1 info
+cmd /usr/bin/iwinfo wlan0 assoclist
+cmd /usr/bin/iwinfo wlan0-1 assoclist
+if [ -d $ATH9K_DEBUGFS_DIR ] ; then
+	# data required for gluon "wifi blackout" bug-reports as requested in
+	# https://github.com/freifunk-gluon/gluon/issues/130 
+	for filename in reset queues interrupt ; do
+		read "${ATH9K_DEBUGFS_DIR}/${filename}"
+	done
+	sleep 10 && read "${ATH9K_DEBUGFS_DIR}/interrupt"
+	# ... and some additional debug data
+	for filename in ani base_eeprom dma dump_nfcal misc modal_eeprom phy_err recv xmit ; do
+		read "${ATH9K_DEBUGFS_DIR}/${filename}"
+	done
+fi
 cmd batctl gwl
 cmd batctl tl
 killall -USR1 fastd 2>/dev/null
