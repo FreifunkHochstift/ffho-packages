@@ -5,7 +5,7 @@ if [ "$1" == "--send" ]; then
 
 	mac=$(lua -e 'print(require("gluon.sysconfig").primary_mac)')
 	target_host='fdca:ffee:ff12:a254::da7a'
-	target_port=1337
+	target_port=1338
 
 	tf=/tmp/live-debug.dat
 	datapath="ffpb.debug.${mac}"
