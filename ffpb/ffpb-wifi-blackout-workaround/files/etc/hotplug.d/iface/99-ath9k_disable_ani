@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# "ANI-thing is better than no WiFi"-Workaround
+#
+# In order to avoid further WiFi-Blackouts that *might* be caused by a buggy
+# ANI feature in the ath9k kernel module, we disable ANI for nodes using the
+# "stable" firmware branch until it got fixed in OpenWRT completely.
+
+# Don't need to do anything, unless the script gets triggered by an "ifup"
+# event.
+[[ "$ACTION" != "ifup" ]] && exit 0;
+[[ "$INTERFACE" != "mesh_radio0" && "$INTERFACE" != "client" ]] && exit 0;
+
+# Test whether disabling ANI is applicable or not
+if [ ! -e "/sys/kernel/debug/ieee80211/phy0/ath9k/ani" ] ; then
+	logger -s -t ath9k-disable-ani -p local0.notice \
+		"Not an ath9k device with ANI. Aborting."
+	exit 0
+fi
+
+# Load helper functions and determine the current branch
+. /lib/functions.sh
+
+config_load autoupdater
+
+# Test whether this devices has the stable or the testing firmware
+config_get fw_branch "settings" "branch"
+
+new_ani_state=1
+log_msg="Current firmware branch is: ${fw_branch}"
+if [ "$fw_branch" == "stable" ] ; then
+	new_ani_state=0
+	log_msg="${log_msg} (disabling ANI)"
+else
+	log_msg="${log_msg} (enabling ANI)"
+fi
+
+# enable/disable feature
+logger -s -t ath9k-disable-ani -p local0.info $log_msg
+/bin/echo ${new_ani_state} > /sys/kernel/debug/ieee80211/phy0/ath9k/ani
+
