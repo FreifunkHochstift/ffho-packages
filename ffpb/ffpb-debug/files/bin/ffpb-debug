@@ -59,6 +59,7 @@ if debugFile==nil then
 	-- now get some information about the network status
 	debugdata = debugdata .. cmd("ip addr show")
 	debugdata = debugdata .. cmd("ip route show")
+	debugdata = debugdata .. cmd("ip -6 route show")
 	
 	-- get wireless status
 	debugdata = debugdata .. cmd("iw phy phy0 info")
