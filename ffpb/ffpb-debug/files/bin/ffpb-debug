@@ -8,7 +8,7 @@ function cmd(_command)
 	local f = io.popen(_command)
 	local l = f:read("*a")
 	f:close()
-	return "--- START COMMAND " .. _command .. " ---\n" .. l .. "--- END COMMAND " .. _command .. " ---\n\n"
+	return "# " .. _command .. ": \n" .. l .. "\n"
 end
 
 -- read contents of a given file
@@ -17,7 +17,7 @@ function readFile(_file)
 	if f~=nil then
 		local l = f:read("*a")
 		f:close()
-		return "--- BEGIN OF FILE " .. _file .. " ---\n" .. l .. "--- END OF FILE " .. _file .. " ---\n\n"
+		return "--- Content of file " .. _file .. " ---\n" .. l .. "\n\n"
 	else
 		return ""
 	end
@@ -50,18 +50,24 @@ if debugFile==nil then
 	print ('This may take some seconds, please stand by.')
 	
 	-- first of all, collect some generic information about the system
+	debugdata = debugdata .. "---- BEGIN SYSTEM INFORMATION ----\n"
 	debugdata = debugdata .. cmd("uname -n")
 	debugdata = debugdata .. cmd("cat /lib/gluon/release")
 	debugdata = debugdata .. cmd("cat /tmp/sysinfo/model")
 	debugdata = debugdata .. cmd("uptime")
 	debugdata = debugdata .. cmd("date")
+	debugdata = debugdata .. "---- END SYSTEM INFORMATION ----\n\n"
 	
 	-- now get some information about the network status
-	debugdata = debugdata .. cmd("ip addr show")
+	
+	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n"
+	debugdata = debugdata .. cmd("ip addr show") 
 	debugdata = debugdata .. cmd("ip route show")
 	debugdata = debugdata .. cmd("ip -6 route show")
+	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n\n"
 	
 	-- get wireless status
+	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
 	debugdata = debugdata .. cmd("iw phy phy0 info")
 	debugdata = debugdata .. cmd("iw dev wlan0 info")
 	debugdata = debugdata .. cmd("iw dev wlan0 station dump")
@@ -71,8 +77,11 @@ if debugFile==nil then
 	debugdata = debugdata .. cmd("iwinfo wlan0-1 info")
 	debugdata = debugdata .. cmd("iwinfo wlan0 assoclist")
 	debugdata = debugdata .. cmd("iwinfo wlan0-1 assoclist")
+	debugdata = debugdata .. "---- END WIRELESS INFORMATION ----\n\n"
+
 	
 	-- try to get some more information about wlan hardware status
+	debugdata = debugdata .. "---- BEGIN HARDWARE STATUS ----\n"
 	_files = {"reset", "queues", "interrupt"}
 	for file in list_iter(_files) do
 		debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/" .. file)
@@ -86,14 +95,17 @@ if debugFile==nil then
 	for file in list_iter(_files) do
 		debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/" .. file)
 	end
-	
-	-- get batman status
+	debugdata = debugdata .. "---- END HARDWARE STATUS ----\n\n"
+
+	-- get batman status	
+	debugdata = debugdata .. "---- BEGIN BATMAN AND FASTD STATUS ----\n"
 	debugdata = debugdata .. cmd("batctl gwl") 
 	debugdata = debugdata .. cmd("batctl tl")
 	
 	-- finally get fastd status
 	os.execute("killall -USR1 fastd 2>/dev/null")
 	debugdata = debugdata .. cmd("logread")
+	debugdata = debugdata .. "---- END BATMAN AND FASTD STATUS ----\n\n"
 	
 	-- write debugreport to file
 	debugFile = io.open("/tmp/debugreport.txt", "w")
@@ -108,6 +120,7 @@ siteConfig = require("gluon.site_config")
 if localMode then
 	print ('As requested, i will not send the report, here it is:')
 	print (debugdata)
+	os.execute("rm /tmp/debugreport.txt")
 	os.exit(0)
 else
 	print('Sending report to Admin-Team ...')
