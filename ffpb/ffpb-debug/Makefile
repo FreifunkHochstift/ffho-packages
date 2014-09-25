@@ -12,7 +12,7 @@ define Package/ffpb-debug
   SECTION:=ffpb
   CATEGORY:=debug
   TITLE:=Debug scripts for Freifunk Paderborn
-  DEPENDS:=+busybox
+  DEPENDS:=+gluon-core +ubus +libubox +busybox
 endef
 
 define Package/ffpb-debug/description
