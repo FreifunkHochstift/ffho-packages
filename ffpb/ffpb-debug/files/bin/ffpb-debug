@@ -56,6 +56,7 @@ if debugFile==nil then
 	debugdata = debugdata .. cmd("cat /tmp/sysinfo/model")
 	debugdata = debugdata .. cmd("uptime")
 	debugdata = debugdata .. cmd("date")
+	debugdata = debugdata .. cmd("ps w")
 	debugdata = debugdata .. "---- END SYSTEM INFORMATION ----\n\n"
 	
 	-- now get some information about the network status
