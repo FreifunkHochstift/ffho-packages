@@ -1,0 +1,20 @@
+#!/bin/sh
+
+LOCK_FILE="/tmp/.alfred_watchdog_lock"
+
+[[ -e ${LOCK_FILE} ]] && exit 0;
+
+/bin/touch ${LOCK_FILE}
+
+rand=`tr -cd 0-9 </dev/urandom | head -c 32`
+delay=`expr ${rand} % 55`
+sleep ${delay}m
+                                                
+/usr/sbin/alfred -b bat0 -r 158 > /dev/null 2&>1
+if [[ "$?" == 255 ]] ; then                                                                                      
+    logger -s -t ffpb-alfred-watchdog -p local0.info "A.L.F.R.E.D. appears to be dead. Triggering a restart now."
+    /etc/init.d/alfred restart > /dev/null 2&>1
+fi
+                                             
+[[ -e ${LOCK_FILE} ]] && /bin/rm ${LOCK_FILE}
+
