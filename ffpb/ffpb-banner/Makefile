@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffpb-banner
   SECTION:=ffpb
-  CATEGORY:=debug
+  CATEGORY:=Customization
   TITLE:=Banner file replacement
   DEPENDS:=+gluon-core +busybox
 endef
