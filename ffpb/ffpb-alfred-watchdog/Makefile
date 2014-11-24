@@ -13,6 +13,9 @@ define Package/ffpb-alfred-watchdog
   CATEGORY:=workarounds
   TITLE:=A.L.F.R.E.D. crash watchdog
   DEPENDS:=+busybox
+  MAINTAINER:=Freifunk Paderborn <maschinenraum@paderborn.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffpb-packages
+  SOURCE:=git@git.c3pb.de:freifunk-pb/ffpb-packages.git
 endef
 
 define Package/ffpb-alfred-watchdog/description
@@ -30,7 +33,6 @@ define Package/ffpb-alfred-watchdog/description
 endef
 
 define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
 endef
 
 define Build/Configure
