@@ -42,7 +42,10 @@ define Build/Compile
 endef
 
 define Package/ffpb-alfred-watchdog/install
-	$(CP) ./files/* $(1)/
+	$(INSTALL_DIR) $(1)/bin/
+	$(INSTALL_DIR) $(1)/lib/gluon/cron/
+	$(INSTALL_BIN) ./files/bin/* $(1)/bin/
+	$(INSTALL_DATA) ./files/lib/gluon/cron/* $(1)/lib/gluon/cron/
 endef
 
 $(eval $(call BuildPackage,ffpb-alfred-watchdog))
