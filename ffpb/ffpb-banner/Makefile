@@ -13,6 +13,9 @@ define Package/ffpb-banner
   CATEGORY:=Customization
   TITLE:=Banner file replacement
   DEPENDS:=+gluon-core +busybox
+  MAINTAINER:=Freifunk Paderborn <maschinenraum@paderborn.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffpb-packages
+  SOURCE:=git@git.c3pb.de:freifunk-pb/ffpb-packages.git
 endef
 
 define Package/ffpb-banner/description
