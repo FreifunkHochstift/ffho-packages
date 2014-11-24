@@ -29,8 +29,41 @@ endef
 define Build/Compile
 endef
 
+define Package/ffpb-banner/preinst
+#!/bin/sh
+cd "$${IPKG_INSTROOT}/etc/"
+if [ -h "./banner" ] ; then
+	/bin/rm "./banner"
+elif [ -f "./banner" ] ; then
+	/bin/mv "./banner" "./banner.openwrt"
+fi
+/bin/ln -s "./banner.openwrt" "./banner"
+exit 0
+endef
+
+define Package/ffpb-banner/postinst
+#!/bin/sh
+cd "$${IPKG_INSTROOT}/etc/"
+[ -h "./banner" ] && /bin/rm -f "./banner"
+/bin/ln -s "./banner.ffpb" "./banner"
+exit $$?
+endef
+
+define Package/ffpb-banner/prerm
+#!/bin/sh
+cd "$${IPKG_INSTROOT}/etc/"
+if [ -h "./banner" ] ; then
+	[[ "$$(readlink -n ./banner)" == "./banner.ffpb" ]] && \
+	/bin/rm -f "./banner" && \
+	[ -f "./banner.openwrt" ] && \
+	/bin/ln -s "./banner.openwrt" "./banner"
+fi
+exit 0
+endef
+
 define Package/ffpb-banner/install
-	$(CP) ./files/* $(1)/
+	$(INSTALL_DIR) $(1)/etc/
+	$(INSTALL_DATA) ./files/etc/banner.ffpb $(1)/etc/
 endef
 
 $(eval $(call BuildPackage,ffpb-banner))
