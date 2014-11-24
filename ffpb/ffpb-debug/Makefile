@@ -13,6 +13,9 @@ define Package/ffpb-debug
   CATEGORY:=debug
   TITLE:=Debug scripts for Freifunk Paderborn
   DEPENDS:=+gluon-core +ubus +libubox +busybox
+  MAINTAINER:=Freifunk Paderborn <maschinenraum@paderborn.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffpb-packages
+  SOURCE:=git@git.c3pb.de:freifunk-pb/ffpb-packages.git
 endef
 
 define Package/ffpb-debug/description
