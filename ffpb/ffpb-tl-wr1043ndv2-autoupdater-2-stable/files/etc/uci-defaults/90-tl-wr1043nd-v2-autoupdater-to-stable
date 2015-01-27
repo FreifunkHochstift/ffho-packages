@@ -1,0 +1,7 @@
+#!/bin/sh
+
+[ "$(cat /tmp/sysinfo/board_name)" == "tl-wr1043nd-v2" ] && \
+  uci set autoupdater.settings.branch="stable" && \
+  uci set autoupdater.settings.enabled=1
+
+exit 0
