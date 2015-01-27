@@ -1,0 +1,10 @@
+#!/usr/bin/lua
+
+local sysctl = require 'gluon.sysctl'
+
+sysctl.set('net.ipv4.neigh.default.gc_thresh1', 192)
+sysctl.set('net.ipv4.neigh.default.gc_thresh2', 640)
+sysctl.set('net.ipv4.neigh.default.gc_thresh3', 1280)
+sysctl.set('net.ipv6.neigh.default.gc_thresh1', 512)
+sysctl.set('net.ipv6.neigh.default.gc_thresh2', 1024)
+sysctl.set('net.ipv6.neigh.default.gc_thresh3', 1536)
