@@ -40,7 +40,6 @@ do_component() {
 
 
 cd "$UPGRADE_DIR"
-do_component core
 
 for component in *; do
 	[ "$component" != 'core' ] || continue
