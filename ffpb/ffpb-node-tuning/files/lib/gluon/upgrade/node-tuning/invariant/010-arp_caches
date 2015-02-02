@@ -1,10 +1,23 @@
 #!/usr/bin/lua
 
+require 'luci.sys'
 local sysctl = require 'gluon.sysctl'
 
-sysctl.set('net.ipv4.neigh.default.gc_thresh1', 192)
-sysctl.set('net.ipv4.neigh.default.gc_thresh2', 640)
-sysctl.set('net.ipv4.neigh.default.gc_thresh3', 1280)
-sysctl.set('net.ipv6.neigh.default.gc_thresh1', 512)
-sysctl.set('net.ipv6.neigh.default.gc_thresh2', 1024)
-sysctl.set('net.ipv6.neigh.default.gc_thresh3', 1536)
+if (tonumber(luci.sys.exec('sysctl net.ipv4.neigh.default.gc_thresh1'):match('%d+', 34)) or 128) < 192 then
+  sysctl.set('net.ipv4.neigh.default.gc_thresh1', 192)
+end
+if (tonumber(luci.sys.exec('sysctl net.ipv4.neigh.default.gc_thresh2'):match('%d+', 34)) or 512) < 640 then
+  sysctl.set('net.ipv4.neigh.default.gc_thresh2', 640)
+end
+if (tonumber(luci.sys.exec('sysctl net.ipv4.neigh.default.gc_thresh3'):match('%d+', 34)) or 1024) < 1280 then
+  sysctl.set('net.ipv4.neigh.default.gc_thresh3', 1280)
+end
+if (tonumber(luci.sys.exec('sysctl net.ipv6.neigh.default.gc_thresh1'):match('%d+', 34)) or 128) < 512 then
+  sysctl.set('net.ipv6.neigh.default.gc_thresh1', 512)
+end
+if (tonumber(luci.sys.exec('sysctl net.ipv6.neigh.default.gc_thresh2'):match('%d+', 34)) or 512) < 1024 then
+  sysctl.set('net.ipv6.neigh.default.gc_thresh2', 1024)
+end
+if (tonumber(luci.sys.exec('sysctl net.ipv6.neigh.default.gc_thresh3'):match('%d+', 34)) or 1024) < 1536 then
+  sysctl.set('net.ipv6.neigh.default.gc_thresh3', 1536)
+end
