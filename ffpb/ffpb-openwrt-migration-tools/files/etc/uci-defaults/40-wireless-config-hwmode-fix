@@ -1,0 +1,20 @@
+#!/bin/sh
+
+FIX_SCRIPT=" \
+require('os') \
+local uci = require('luci.model.uci').cursor() \
+function change_mode(t) \
+  if t['hwmode'] == '11na' then \
+    curs:set('wireless', t['.name'], 'hwmode', '11a') \
+  elseif t['hwmode'] == '11ng' then \
+    curs:set('wireless', t['.name'], 'hwmode', '11g') \
+  end \
+end \
+curs = uci.cursor() \
+curs:foreach('wireless', 'wifi-device', change_mode) \
+curs:commit('wireless') \
+os.exit(0) \
+"
+
+echo ${FIX_SCRIPT} | /usr/bin/lua -
+exit ${?}
