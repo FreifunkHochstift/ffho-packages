@@ -22,7 +22,7 @@ do_dir() {
 do_component() {
 	local component="$1"
 	local version="$(version_of "$component")"
-	[ "$version" ] || return
+	[ "$version" ] || return 255
 
 	(
 		cd "$component"
@@ -44,4 +44,7 @@ cd "$UPGRADE_DIR"
 for component in *; do
 	[ "$component" != 'core' ] || continue
 	do_component "$component"
+	[ "$?" -ne "0" -o "$?" -ne "255" ] || exit 1
 done
+
+exit 0
