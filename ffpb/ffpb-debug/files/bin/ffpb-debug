@@ -49,7 +49,7 @@ if oldReport==nil then
 	-- no existing debugreport, let's generate a new one
 	
 	-- inform the User ;)
-	print ('Hello, i will gather some information about your node now.')
+	print ('Hello, I will gather some information about your node now.')
 	print ('This may take some seconds, please stand by.')
 	
 	-- first of all, collect some generic information about the system
@@ -119,12 +119,12 @@ end
 -- if local mode is requested print the report, otherwise send it to the admin team
 siteConfig = require("gluon.site_config")
 if localMode then
-	print ('As requested, i will not send the report, here it is:')
+	print ('As requested, I will not send the report to the gurus, so here it is:')
 	print (debugdata)
 	nixio.fs.unlink(PATH_DBG_REPORT)
 else
 	local nixio = require('nixio'), require('nixio.util')
-	print('Sending report to Admin-Team ...')
+	print('Sending debug data to a remote server ...')
 	local sent = 0
 	local reportname = nil
 	local port = siteConfig.debugserver.port
@@ -150,9 +150,8 @@ else
 		print('\nYour report has been stored at the debug-server with the name: ' .. reportname)
 		print('I also notified some gurus to take care of the issue. My job is done here, good bye!.')
 	else
-		print('Sorry, i could\'t send the report. I will try it again')
-		print('when this script will be invoked the next time.')
-		print('Good bye')
+		print('Sorry, I couldn\'t send the report. I will try it again the next time you run me.')
+		print('See you soon ...')
 		local f = nixio.open(PATH_DBG_REPORT, 'w')
 		f:writeall(debugdata)
 		f:close()
