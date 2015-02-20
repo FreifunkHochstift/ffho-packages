@@ -49,8 +49,8 @@ if oldReport==nil then
 	-- no existing debugreport, let's generate a new one
 	
 	-- inform the User ;)
-	print ('Hello, I will gather some information about your node now.')
-	print ('This may take some seconds, please stand by.')
+	print('-- Hello, Mr. Dillinger. Thank you for coming back early.')
+	print('-- Sit right there; make yourself comfortable. Remember the time we spent play chess together?')
 	
 	-- first of all, collect some generic information about the system
 	debugdata = debugdata .. "---- BEGIN SYSTEM INFORMATION ----\n"
@@ -111,7 +111,8 @@ if oldReport==nil then
 	debugdata = debugdata .. cmd("logread")
 	debugdata = debugdata .. "---- END BATMAN AND FASTD STATUS ----\n\n"
 else
-	print('I found an old debugreport.')
+	print('Orphaned debug-report file found.')
+	print('-- You wouldn\'t want me to dig up Flynn\'s file and read it up on a VDT at The Times, would you?')
 	debugdata = oldReport:readall() 
 	oldReport:close()
 end
@@ -119,12 +120,13 @@ end
 -- if local mode is requested print the report, otherwise send it to the admin team
 siteConfig = require("gluon.site_config")
 if localMode then
-	print ('As requested, I will not send the report to the gurus, so here it is:')
-	print (debugdata)
+	print('Omitting to send the report data to a report-server')
+	print('-- Sark! All of my functions are now yours. Take them!:')
+	print(debugdata)
 	nixio.fs.unlink(PATH_DBG_REPORT)
 else
 	local nixio = require('nixio'), require('nixio.util')
-	print('Sending debug data to a remote server ...')
+	print('-- My User has information that could... that could make this a free system again!')
 	local sent = 0
 	local reportname = nil
 	local port = siteConfig.debugserver.port
@@ -148,14 +150,17 @@ else
 
 	if reportname ~= nil then
 		print('\nYour report has been stored at the debug-server with the name: ' .. reportname)
-		print('I also notified some gurus to take care of the issue. My job is done here, good bye!.')
+		print('-- With the information I can access, I can run things 900 to 1200 times better than any human.')
 	else
-		print('Sorry, I couldn\'t send the report. I will try it again the next time you run me.')
-		print('See you soon ...')
+		print('Sorry, I couldn\'t send the report.')
+		print('-- If you are a User, then everything you\'ve done so far has been according to a plan, right?')
+		print('-- I will try it again the next time you run me. See you soon ...')
 		local f = nixio.open(PATH_DBG_REPORT, 'w')
 		f:writeall(debugdata)
 		f:close()
 	end
 end
+
+print("-- You've almost reached your decision gate, and I cannot spare you any more time. End of Line.")
 
 os.exit(0)
