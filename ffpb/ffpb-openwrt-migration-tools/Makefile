@@ -12,7 +12,7 @@ define Package/ffpb-openwrt-migration-tools
   SECTION:=ffpb
   CATEGORY:=Gluon
   TITLE:=Toolset of scripts that support the migration from one version of OpenWRT to another.
-  DEPENDS:=+gluon-core +busybox +hostapd-common
+  DEPENDS:=+gluon-core +busybox +hostapd-common +netifd
   MAINTAINER:=Freifunk Paderborn <maschinenraum@paderborn.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffpb-packages
   SOURCE:=git@git.c3pb.de:freifunk-pb/ffpb-packages.git
@@ -44,16 +44,22 @@ cd "$${IPKG_INSTROOT}/lib/netifd/"
 if [ -f "hostapd.sh" ] ; then
 	/bin/rm "./hostapd.sh"
 fi
+cd "$${IPKG_INSTROOT}/lib/wifi/"
+if [ -f "mac80211.sh" ] ; then
+	/bin/rm "./mac80211.sh"
+fi
 exit 0
 endef
 
 define Package/ffpb-openwrt-migration-tools/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
 	$(INSTALL_DIR) $(1)/lib/netifd/wireless/
+	$(INSTALL_DIR) $(1)/lib/wifi/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/90-tlwr1043ndv2-autoupdater-to-stable $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/40-wireless-config-hwmode-fix $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/lib/netifd/wireless/mac80211.sh $(1)/lib/netifd/wireless/
 	$(INSTALL_BIN) ./files/lib/netifd/hostapd.sh $(1)/lib/netifd/
+	$(INSTALL_BIN) ./files/lib/wifi/mac80211.sh $(1)/lib/wifi/
 endef
 
 $(eval $(call BuildPackage,ffpb-openwrt-migration-tools))
