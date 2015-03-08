@@ -69,6 +69,13 @@ if oldReport==nil then
 	debugdata = debugdata .. cmd("ip route show")
 	debugdata = debugdata .. cmd("ip -6 route show")
 	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n\n"
+
+	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n"
+	debugdata = debugdata .. cmd("iptables -t raw -L -v")
+	debugdata = debugdata .. cmd("iptables -t filter -L -v")
+	debugdata = debugdata .. cmd("iptables -t nat -L -v")
+	debugdata = debugdata .. cmd("iptables -t mangle -L -v")
+	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n\n"	
 	
 	-- get wireless status
 	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
