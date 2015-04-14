@@ -21,3 +21,5 @@ end
 if (tonumber(luci.sys.exec('sysctl net.ipv6.neigh.default.gc_thresh3'):match('%d+', 34)) or 1024) < 1536 then
   sysctl.set('net.ipv6.neigh.default.gc_thresh3', 1536)
 end
+
+os.execute('sync; sysctl -qp')

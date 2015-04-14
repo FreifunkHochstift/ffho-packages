@@ -39,19 +39,11 @@ define Build/Compile
 endef
 
 define Package/ffpb-node-tuning/postinst
-#!/bin/sh
-mkdir -p "$${IPKG_INSTROOT}/lib/gluon/version/"
-cd "$${IPKG_INSTROOT}/lib/gluon/version/"                                                                 
-echo $(PKG_VERSION)-$(PKG_RELEASE) > node-tuning
-exit 0
 endef
 
 define Package/ffpb-node-tuning/install
-	$(INSTALL_DIR) $(1)/etc/uci-defaults/
-	$(INSTALL_DIR) $(1)/lib/gluon/upgrade/node-tuning/invariant/
-	$(INSTALL_BIN) ./files/etc/uci-defaults/zz~-ffpb-upgrade $(1)/etc/uci-defaults/
-	$(INSTALL_BIN) ./files//lib/gluon/upgrade/node-tuning/invariant/010-arp_caches $(1)/lib/gluon/upgrade/node-tuning/invariant/
-	$(INSTALL_BIN) ./files//lib/gluon/upgrade/node-tuning/invariant/099-apply_settings $(1)/lib/gluon/upgrade/node-tuning/invariant/
+	$(INSTALL_DIR) $(1)/lib/gluon/upgrade/
+	$(INSTALL_BIN) ./files//lib/gluon/upgrade/* $(1)/lib/gluon/upgrade/
 endef
 
 $(eval $(call BuildPackage,ffpb-node-tuning))
