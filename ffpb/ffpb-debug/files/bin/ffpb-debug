@@ -76,13 +76,13 @@ if oldReport==nil then
 	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n\n"
 
 	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n"
-        debugdata = debugdata .. cmd("iptables -t raw -L -v")
-        debugdata = debugdata .. cmd("iptables -t filter -L -v")
-        debugdata = debugdata .. cmd("iptables -t nat -L -v")
-        debugdata = debugdata .. cmd("iptables -t mangle -L -v")                 
-        debugdata = debugdata .. cmd("ip6tables -t raw -L -v")
-        debugdata = debugdata .. cmd("ip6tables -t filter -L -v")
-        debugdata = debugdata .. cmd("ip6tables -t mangle -L -v")
+	debugdata = debugdata .. cmd("iptables -t raw -L -v")
+	debugdata = debugdata .. cmd("iptables -t filter -L -v")
+	debugdata = debugdata .. cmd("iptables -t nat -L -v")
+	debugdata = debugdata .. cmd("iptables -t mangle -L -v")                 
+	debugdata = debugdata .. cmd("ip6tables -t raw -L -v")
+	debugdata = debugdata .. cmd("ip6tables -t filter -L -v")
+	debugdata = debugdata .. cmd("ip6tables -t mangle -L -v")
 	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n\n"	
 	
 	-- get wireless status
