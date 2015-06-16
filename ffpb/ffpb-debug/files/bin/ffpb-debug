@@ -125,6 +125,10 @@ if oldReport==nil then
 	os.execute("killall -USR1 fastd 2>/dev/null")
 	debugdata = debugdata .. cmd("logread")
 	debugdata = debugdata .. "---- END BATMAN AND FASTD STATUS ----\n\n"
+
+	debugdata = debugdata .. "---- BEGIN DMESG KERNEL LOG ----\n"
+	debugdata = debugdata .. cmd("dmesg")
+	debugdata = debugdata .. "---- END DMESG KERNEL LOG ----\n\n"
 else
 	print('Orphaned debug-report file found.')
 	print('-- You wouldn\'t want me to dig up Flynn\'s file and read it up on a VDT at The Times, would you?')
