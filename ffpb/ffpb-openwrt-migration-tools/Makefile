@@ -55,7 +55,6 @@ define Package/ffpb-openwrt-migration-tools/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
 	$(INSTALL_DIR) $(1)/lib/netifd/wireless/
 	$(INSTALL_DIR) $(1)/lib/wifi/
-	$(INSTALL_BIN) ./files/etc/uci-defaults/90-tlwr1043ndv2-autoupdater-to-stable $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/40-wireless-config-hwmode-fix $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/lib/netifd/wireless/mac80211.sh $(1)/lib/netifd/wireless/
 	$(CP) ./files/lib/netifd/hostapd.sh $(1)/lib/netifd/
