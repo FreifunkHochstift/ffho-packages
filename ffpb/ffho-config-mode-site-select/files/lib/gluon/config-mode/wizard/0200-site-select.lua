@@ -8,9 +8,7 @@ local config = require 'gluon.sites'
 local M = {}
 
 function M.section(form)
-	local msg = i18n.translate('Here you have the possibility of selecting the region in which ' ..
-                               'your node is placed. Please keep in mind that your router ' ..
-                               'connects only with the mesh of the selected region')
+	local msg = i18n.translate('gluon-config-mode:site-select')
 	local s = form:section(cbi.SimpleSection, nil, msg)
 
 	local o = s:option(cbi.ListValue, "community", i18n.translate("Region"))
