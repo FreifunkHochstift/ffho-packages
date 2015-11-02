@@ -22,7 +22,7 @@ function M.section(form)
 	end
 
 	for index, tmp in pairs(config) do
-		o:value(tmp.site_code, tmp.site_name))
+		o:value(tmp.site_code, tmp.site_name)
 	end
 end
 

@@ -11,23 +11,23 @@ local currentsite = c:get("currentsite", "current", "name")
 local file = "/etc/sysupgrade.conf"
 local configured = false
 
-function serialize (o)
+function serialize (f,o)
   if type(o) == "number" then
-    io.write(o)
+    f:write(o)
   elseif type(o) == "string" then
-    io.write(string.format("%q", o))
+    f:write(string.format("%q", o))
   elseif type(o) == "boolean" then
-    io.write(o and 1 or 0)
+    f:write(o and 1 or 0)
   elseif type(o) == "table" then
-    io.write("{\n")
+    f:write("{\n")
     for k,v in pairs(o) do
       if type(k) == "string" then
-        io.write("  ", k, " = ")
+        f:write("  ", k, " = ")
       end
-      serialize(v)
-      io.write(",\n")
+      serialize(f,v)
+      f:write(",\n")
     end
-    io.write("}\n")
+    f:write("}")
   else
     error("cannot serialize a " .. type(o))
   end
@@ -70,9 +70,8 @@ if site.site_code ~= currentsite then
   new.batman_on_wan = site.batman_on_wan
 
   file = '/lib/gluon/site.conf'
-  io.output(file)
-  f = io.open(file, 'w')
-  serialize(new)
+  f = io.open(file, "w")
+  serialize(f,new)
   f:write('\n')
   f:close()
 end
