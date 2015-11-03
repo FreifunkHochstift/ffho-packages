@@ -14,8 +14,8 @@ define Package/ffho-banner
   TITLE:=Banner file replacement
   DEPENDS:=+gluon-core +busybox
   MAINTAINER:=Freifunk Hochstift <maschinenraum@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffpb-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffpb-packages.git
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
+  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-banner/description
