@@ -1,0 +1,134 @@
+#!/bin/sh
+
+TEMP_DATA_FILE="/tmp/ffho-live-debug.dat"
+LIVE_DEBUG_TARGET_HOST="fdca:ffee:ff12:a254::da7a"
+LIVE_DEBUG_TARGET_HOST_PORT=1338
+LIVE_DEBUG_GRAPHITE_DATAPATH_BASE="ffho.debug."$(lua -e 'print(require("gluon.sysconfig").primary_mac)')
+
+. /etc/openwrt_release
+. /usr/share/libubox/jshn.sh
+
+determine_lan_device_name() {
+        local _iface="$1"
+        local _var="$2"
+
+        json_load "$(ubus call network.interface.${_iface} status)"
+        json_get_var is_up "up"
+        if [ $is_up == 1 ] ; then
+                json_get_var $_var "device"
+        fi
+
+        json_cleanup
+}
+
+
+determine_wifi_device_name()
+{
+        local _iface="$1"
+        local _var="$2"
+
+        if [ "${DISTRIB_CODENAME}" == "attitude_adjustment" ] ; then
+                eval "$_var=\"$(uci -P/var/state get wireless.${_iface}.ifname)\""
+        else
+                json_load "$(ubus call network.wireless status)"
+                json_select "radio0"
+                json_select "interfaces"
+
+                local _idx=1
+                while json_get_type type "$_idx" && [ "$type" = object ] ; do
+                        json_select "$(( _idx++ ))"
+                        json_get_var section "section"
+                        if [ "${section}" == "${_iface}" ] ; then
+                                json_get_var $_var "ifname"
+                                break
+                        fi
+                        json_select ".."
+                done
+
+                json_cleanup
+        fi
+}
+
+
+get_device_stats() {
+        local _dev="$1"
+        rx_bytes="$2"
+        tx_bytes="$3"
+        rx_dropped="$4"
+        tx_dropped="$5"
+        json_select "${_dev}"
+        json_select "statistics"
+        json_get_vars rx_bytes tx_bytes rx_dropped tx_dropped
+
+        json_select ".." && json_select ".."
+}
+
+
+gather_device_data() {
+        local rx_bytes
+        local ty_bytes
+        local rx_dropped
+        local tx_dropped
+        json_load "$(ubus call network.device status)"
+
+        if [ -n "{$DEV_MESH_RADIO_24}" ] ; then
+                get_device_stats ${DEV_MESH_RADIO_24} rx_bytes tx_bytes rx_dropped tx_dropped
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_radio0.rx_bytes ${rx_bytes} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_radio0.tx_bytes ${tx_bytes} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_radio0.rx_dropped ${rx_dropped} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_radio0.tx_dropped ${tx_dropped} ${timestamp}" >> ${TEMP_DATA_FILE}
+        fi
+
+        if [ -n "{$DEV_CLIENT_RADIO_24}" ] ; then
+                get_device_stats ${DEV_CLIENT_RADIO_24} rx_bytes tx_bytes rx_dropped tx_dropped
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.client_radio0.rx_bytes ${rx_bytes} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.client_radio0.tx_bytes ${tx_bytes} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.client_radio0.rx_dropped ${rx_dropped} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.client_radio0.tx_dropped ${tx_dropped} ${timestamp}" >> ${TEMP_DATA_FILE}
+        fi
+
+        if [ -n "${DEV_MESH_VPN}" ] ; then
+                get_device_stats ${DEV_MESH_VPN} rx_bytes tx_bytes rx_dropped tx_dropped
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_vpn.rx_bytes ${rx_bytes} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_vpn.tx_bytes ${tx_bytes} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_vpn.rx_dropped ${rx_dropped} ${timestamp}" >> ${TEMP_DATA_FILE}
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.mesh_vpn.tx_dropped ${tx_dropped} ${timestamp}" >> ${TEMP_DATA_FILE}
+        fi
+
+        json_cleanup
+}
+
+
+gather_stations_data() {
+        if [ -n "${DEV_CLIENT_RADIO_24}" ] ; then
+                cnt_assoc_clients=$(iwinfo ${DEV_CLIENT_RADIO_24} assoclist | grep dBm | wc -l)
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.cnt_assoc_clients ${cnt_assoc_clients} ${timestamp}" >> ${TEMP_DATA_FILE}
+        fi
+
+        if [ -n "${DEV_CLIENT_RADIO_24}" ] ; then
+                cnt_client_stations=$(iw dev ${DEV_CLIENT_RADIO_24} station dump | grep ^Station | wc -l)
+                echo ${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.cnt_client_stations ${cnt_client_stations} ${timestamp} >> ${TEMP_DATA_FILE}
+        fi
+
+        cnt_batman_clients=$(batctl tl | tail -n +3 |  grep -v "\[\.P\.\.\.\]" | wc -l)
+        echo ${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.cnt_batman_clients ${cnt_batman_clients} ${timestamp} >> ${TEMP_DATA_FILE}
+
+        if [ -n "${DEV_MESH_RADIO_24}" ] ; then
+                cnt_neighbours=$(iw dev ${DEV_MESH_RADIO_24} station dump | grep ^Station | wc -l)
+                echo "${LIVE_DEBUG_GRAPHITE_DATAPATH_BASE}.cnt_neighbours ${cnt_neighbours} ${timestamp}" >> ${TEMP_DATA_FILE}
+        fi
+}
+
+
+echo "Starting live-debug ... press Ctrl+C to abort."
+determine_wifi_device_name "mesh_radio0" DEV_MESH_RADIO_24
+determine_wifi_device_name "client_radio0" DEV_CLIENT_RADIO_24
+determine_lan_device_name "mesh_vpn" DEV_MESH_VPN
+while true; do
+        timestamp=$(date +%s)
+        date -R -d "${timestamp}"
+        gather_device_data
+        gather_stations_data
+        nc "${LIVE_DEBUG_TARGET_HOST}" "${LIVE_DEBUG_TARGET_HOST_PORT}" < ${TEMP_DATA_FILE} && /bin/rm ${TEMP_DATA_FILE}
+        sleep 5
+done

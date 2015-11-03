@@ -1,0 +1,185 @@
+#!/usr/bin/lua
+
+debugdata = ""
+ATH9K_DEBUGFS_DIR="/sys/kernel/debug/ieee80211/phy0/ath9k"
+PATH_DBG_REPORT='/tmp/debug-report.txt'
+
+local nixio = require('nixio'), require('nixio.util'), require('nixio.fs')
+
+-- wrapper for calling systemcommands
+function cmd(_command)
+	local f = io.popen(_command)
+	local l = f:read("*a")
+	f:close()
+	return "# " .. _command .. ": \n" .. l .. "\n"
+end
+
+-- read contents of a given file
+function readFile(_file)
+	local f = io.open(_file, "r")
+	if f~=nil then
+		local l = f:read("*a")
+		f:close()
+		return "--- Content of file " .. _file .. " ---\n" .. l .. "\n\n"
+	else
+		return ""
+	end
+end
+
+-- iterate through list
+function list_iter (_table)
+	local i = 0
+	local n = table.getn(_table)
+	return function ()
+		i = i + 1
+		if i <= n then return _table[i] end
+	end
+end
+
+localMode = false
+
+-- Should we enter local mode?
+if arg[1] == '-l' then
+	localMode = true
+end
+
+-- search for existing debug report
+local oldReport = nixio.open(PATH_DBG_REPORT, "r")
+if oldReport==nil then
+	-- no existing debugreport, let's generate a new one
+	
+	-- inform the User ;)
+	print('-- Hello, Mr. Dillinger. Thank you for coming back early.')
+	print('-- Sit right there; make yourself comfortable. Remember the time we spent play chess together?')
+	
+	-- first of all, collect some generic information about the system
+	debugdata = debugdata .. "---- BEGIN SYSTEM INFORMATION ----\n"
+	debugdata = debugdata .. cmd("uname -n")
+	debugdata = debugdata .. cmd("cat /lib/gluon/release")
+	debugdata = debugdata .. cmd("cat /tmp/sysinfo/model")
+	debugdata = debugdata .. cmd("uptime")
+	debugdata = debugdata .. cmd("date")
+	debugdata = debugdata .. cmd("ps w")
+	debugdata = debugdata .. "---- END SYSTEM INFORMATION ----\n\n"
+
+    -- show uci variables
+	debugdata = debugdata .. "---- BEGIN UCI VARIABLES ----\n"
+	debugdata = debugdata .. cmd("uci show")
+	debugdata = debugdata .. "---- END UCI VARIABLES ----\n\n"
+
+	-- now get some information about the network status
+	
+	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n"
+	debugdata = debugdata .. cmd("ip addr show") 
+	debugdata = debugdata .. cmd("ip route show")
+	debugdata = debugdata .. cmd("ip -6 route show")
+	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n\n"
+
+	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n"
+	debugdata = debugdata .. cmd("iptables -t raw -L -v")
+	debugdata = debugdata .. cmd("iptables -t filter -L -v")
+	debugdata = debugdata .. cmd("iptables -t nat -L -v")
+	debugdata = debugdata .. cmd("iptables -t mangle -L -v")                 
+	debugdata = debugdata .. cmd("ip6tables -t raw -L -v")
+	debugdata = debugdata .. cmd("ip6tables -t filter -L -v")
+	debugdata = debugdata .. cmd("ip6tables -t mangle -L -v")
+	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n\n"	
+	
+	-- get wireless status
+	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
+	debugdata = debugdata .. cmd("iw phy phy0 info")
+	debugdata = debugdata .. cmd("iw dev ibss0 info")
+	debugdata = debugdata .. cmd("iw dev ibss0 station dump")
+	debugdata = debugdata .. cmd("iw dev client0 station dump")
+	debugdata = debugdata .. cmd("iwinfo phy0 scan")
+	debugdata = debugdata .. cmd("iwinfo ibss0 info")
+	debugdata = debugdata .. cmd("iwinfo client0 info")
+	debugdata = debugdata .. cmd("iwinfo ibss0 assoclist")
+	debugdata = debugdata .. cmd("iwinfo client0 assoclist")
+	debugdata = debugdata .. "---- END WIRELESS INFORMATION ----\n\n"
+
+	
+	-- try to get some more information about wlan hardware status
+	debugdata = debugdata .. "---- BEGIN HARDWARE STATUS ----\n"
+	_files = {"reset", "queues", "interrupt"}
+	for file in list_iter(_files) do
+		debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/" .. file)
+	end
+	
+	-- sleep ten seconds and read interrupt again
+	os.execute("sleep 10")
+	debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/interrupt")
+	
+	_files = {"ani", "base_eeprom", "dma", "dump_nfcal", "misc", "modal_eeprom", "phy_err", "recv", "xmit"}
+	for file in list_iter(_files) do
+		debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/" .. file)
+	end
+	debugdata = debugdata .. "---- END HARDWARE STATUS ----\n\n"
+
+	-- get batman status	
+	debugdata = debugdata .. "---- BEGIN BATMAN AND FASTD STATUS ----\n"
+	debugdata = debugdata .. cmd("batctl gwl") 
+	debugdata = debugdata .. cmd("batctl tl")
+	
+	-- finally get fastd status
+	os.execute("killall -USR1 fastd 2>/dev/null")
+	debugdata = debugdata .. cmd("logread")
+	debugdata = debugdata .. "---- END BATMAN AND FASTD STATUS ----\n\n"
+
+	debugdata = debugdata .. "---- BEGIN DMESG KERNEL LOG ----\n"
+	debugdata = debugdata .. cmd("dmesg")
+	debugdata = debugdata .. "---- END DMESG KERNEL LOG ----\n\n"
+else
+	print('Orphaned debug-report file found.')
+	print('-- You wouldn\'t want me to dig up Flynn\'s file and read it up on a VDT at The Times, would you?')
+	debugdata = oldReport:readall() 
+	oldReport:close()
+end
+
+-- if local mode is requested print the report, otherwise send it to the admin team
+siteConfig = require("gluon.site_config")
+if localMode then
+	print('Omitting to send the report data to a report-server')
+	print('-- Sark! All of my functions are now yours. Take them!:')
+	print(debugdata)
+	nixio.fs.unlink(PATH_DBG_REPORT)
+else
+	local nixio = require('nixio'), require('nixio.util')
+	print('-- My User has information that could... that could make this a free system again!')
+	local sent = 0
+	local reportname = nil
+	local port = siteConfig.debugserver.port
+	for host in list_iter(siteConfig.debugserver.host) do
+		print('Trying to deliver debug-report to: ' .. host)
+		local sock = nixio.connect(host, port, "inet6", "stream")
+		if sock then
+			sock:setopt('socket', 'sndtimeo', 30.0)
+			sock:setopt('socket', 'rcvtimeo', 30.0)
+			sent = sock:writeall(debugdata)
+			if sent == debugdata:len() then
+				-- half-side close to indicate the end of our transmission
+				sock:shutdown('wr')
+				print('Transmission succeeded. Waiting for report-name.')
+				reportname = sock:readall(256)
+			end
+			sock:close()
+			if reportname ~= nil then break end
+		end
+	end
+
+	if reportname ~= nil then
+		print('\nYour report has been stored at the debug-server with the name: ' .. reportname)
+		print('-- With the information I can access, I can run things 900 to 1200 times better than any human.')
+	else
+		print('Sorry, I couldn\'t send the report.')
+		print('-- If you are a User, then everything you\'ve done so far has been according to a plan, right?')
+		print('-- I will try it again the next time you run me. See you soon ...')
+		local f = nixio.open(PATH_DBG_REPORT, 'w')
+		f:writeall(debugdata)
+		f:close()
+	end
+end
+
+print("-- You've almost reached your decision gate, and I cannot spare you any more time. End of Line.")
+
+os.exit(0)
