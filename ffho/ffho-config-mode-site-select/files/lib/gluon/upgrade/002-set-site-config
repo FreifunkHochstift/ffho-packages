@@ -1,0 +1,83 @@
+#!/usr/bin/lua
+
+local uci = require 'luci.model.uci'
+local site = require 'gluon.site_config'
+local fs = require "nixio.fs"
+local c = uci.cursor()
+local config = require 'gluon.sites'
+
+local currentsite = c:get("currentsite", "current", "name")
+
+local file = "/etc/sysupgrade.conf"
+local configured = false
+
+function serialize (f,o)
+  if type(o) == "number" then
+    f:write(o)
+  elseif type(o) == "string" then
+    f:write(string.format("%q", o))
+  elseif type(o) == "boolean" then
+    f:write(o and 1 or 0)
+  elseif type(o) == "table" then
+    f:write("{\n")
+    for k,v in pairs(o) do
+      if type(k) == "string" then
+        f:write("  ", k, " = ")
+      end
+      serialize(f,v)
+      f:write(",\n")
+    end
+    f:write("}")
+  else
+    error("cannot serialize a " .. type(o))
+  end
+end
+
+for line in io.lines(file) do
+  if line == "/etc/config/currentsite" then
+    configured = true
+  end
+end
+
+if configured == false then
+  f = io.open(file,"a")
+  f:write("/etc/config/currentsite\n")
+  f:close()
+end
+
+if site.site_code ~= currentsite then
+  if type(config[currentsite]) == "table" then
+    local new = {}
+  
+    new.hostname_prefix = site.hostname_prefix
+    new.site_name = config[currentsite].site_name
+    new.site_code = config[currentsite].site_code
+    new.prefix4 = site.prefix4
+    new.prefix6 = site.prefix6
+    new.additional_prefix6 = site.additional_prefix6
+    new.timezone = site.timezone
+    new.ntp_servers = site.ntp_servers
+    new.opkg_repo = site.opkg_repo
+    new.regdom = site.regdom
+    new.wifi24 = site.wifi24
+    new.wifi5 = site.wifi5
+    new.wifi24.ssid = config[currentsite].ssid
+    new.wifi5.ssid = config[currentsite].ssid
+    new.next_node = site.next_node
+    new.fastd_mesh_vpn = site.fastd_mesh_vpn
+    new.autoupdater = site.autoupdater
+    new.simple_tc = site.simple_tc
+    new.debugserver = site.debugserver
+    new.batman_on_wan = site.batman_on_wan
+
+    file = '/lib/gluon/site.conf'
+    f = io.open(file, "w")
+    serialize(f,new)
+    f:write('\n')
+    f:close()
+  else
+    c:set("currentsite", "current", "name", site.site_code)
+    c:save('currentsite')
+    c:commit('currentsite')
+  end
+end
