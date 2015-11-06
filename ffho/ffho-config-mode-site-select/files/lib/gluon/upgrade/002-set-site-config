@@ -11,7 +11,7 @@ local currentsite = c:get("currentsite", "current", "name")
 local file = "/etc/sysupgrade.conf"
 local configured = false
 
-function serialize (f,o)
+function serialize (f,o,d)
   if type(o) == "number" then
     f:write(o)
   elseif type(o) == "string" then
@@ -21,17 +21,19 @@ function serialize (f,o)
   elseif type(o) == "table" then
     f:write("{\n")
     for k,v in pairs(o) do
+      f:write(string.rep ("  ", d+1))
       if type(k) == "string" then
-        f:write("  ", k, " = ")
+        f:write(k, " = ")
       end
-      serialize(f,v)
+      serialize(f,v,d+1)
       f:write(",\n")
     end
-    f:write("}")
+    f:write(string.rep ("  ", d), "}")
   else
     error("cannot serialize a " .. type(o))
   end
 end
+
 
 for line in io.lines(file) do
   if line == "/etc/config/currentsite" then
@@ -72,7 +74,7 @@ if site.site_code ~= currentsite then
 
     file = '/lib/gluon/site.conf'
     f = io.open(file, "w")
-    serialize(f,new)
+    serialize(f,new,0)
     f:write('\n')
     f:close()
   else
