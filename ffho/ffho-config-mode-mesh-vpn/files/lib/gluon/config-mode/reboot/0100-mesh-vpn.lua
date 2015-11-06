@@ -13,12 +13,7 @@ else
   local hostname = uci:get_first("system", "system", "hostname")
   local contact = uci:get_first("gluon-node-info", "owner", "contact")
 
-  local msg = [[<p>]] .. i18n.translate('gluon-config-mode:pubkey') .. [[</p>
-               <div class="the-key">
-                 # <%= hostname %>
-                 <br/>
-               <%= pubkey %>
-               </div>]]
+  local msg = i18n.translate('gluon-config-mode:pubkey')
 
   return function ()
            luci.template.render_string(msg, { pubkey=pubkey
