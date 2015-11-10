@@ -8,9 +8,6 @@ local config = require 'gluon.sites'
 
 local currentsite = c:get("currentsite", "current", "name")
 
-local file = "/etc/sysupgrade.conf"
-local configured = false
-
 function serialize (f,o,d)
   if type(o) == "number" then
     f:write(o)
@@ -32,19 +29,6 @@ function serialize (f,o,d)
   else
     error("cannot serialize a " .. type(o))
   end
-end
-
-
-for line in io.lines(file) do
-  if line == "/etc/config/currentsite" then
-    configured = true
-  end
-end
-
-if configured == false then
-  f = io.open(file,"a")
-  f:write("/etc/config/currentsite\n")
-  f:close()
 end
 
 if site.site_code ~= currentsite then

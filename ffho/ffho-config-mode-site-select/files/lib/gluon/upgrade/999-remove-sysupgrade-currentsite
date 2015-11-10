@@ -1,0 +1,3 @@
+#!/bin/sh
+cat /etc/sysupgrade.conf | grep -v /etc/config/currentsite > /tmp/sysupgrade.conf
+mv /tmp/sysupgrade.conf /etc/sysupgrade.conf
