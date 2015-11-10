@@ -1,0 +1,160 @@
+#!/usr/bin/lua
+local fs = require('nixio.fs')
+local uci = require('luci.model.uci').cursor()
+local site = require 'gluon.site_config'
+local iwinfo = require 'iwinfo'
+local configname = 'autoupdater-wifi-fallback'
+local util = require 'luci.util'
+local settings = uci:get_all(configname, 'settings')
+local ut = require('autoupdater-wifi-fallback.util')
+local debug = true
+
+-- preflight checks
+
+if settings.enabled ~= '1' or uci:get('autoupdater','settings','enabled') ~= '1' then
+  if debug then io.stderr:write('connectivity checks or autoupdater are disabled.\n') end
+  os.exit(0)
+end
+
+if fs.stat("/tmp/run/fastd.mesh_vpn.socket", "type") == "socket" then
+  if debug then io.stderr:write('we have a valid socket for fastd. no fallback required.\n') end
+  os.exit(0)
+end
+
+if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < tonumber(settings.min_uptime_secs) then
+  if debug then io.stderr:write('we just booted. check skipped.\n') end
+  os.exit(0)
+end
+
+local function check_connectivity()
+  local f = io.open("/sys/kernel/debug/batman_adv/bat0/gateways","r")
+  if f ~= nil then
+    f:close()
+    local wifi = get_wifi_neighbours()
+    if wifi ~= nil then
+      for key, interface in ipairs(wifi) do                                          
+        if os.execute(string.format("batctl ping -t5 -c1 %s > /dev/null 2>&1", interface)) == 0 then
+              return true
+        end
+      end
+    end 
+    
+    local list = io.lines("/sys/kernel/debug/batman_adv/bat0/gateways")
+    for line in list do
+      local gateway_mac = line:match("^=?>? +([0-9a-f:]+)")
+      if gateway_mac ~= nil then
+        if os.execute(string.format("batctl ping -t5 -c1 %s > /dev/null 2>&1", gateway_mac)) == 0 then
+          return true
+        end
+      end
+    end
+  end
+  
+  -- ipv6 connectivity check against google dns
+  if os.execute("ping6 -w2 -c1 2001:4860:4860::8888 > /dev/null 2>&1") == 0 then
+    return true
+  end
+  return false
+end
+
+local function run_autoupdater()
+  -- TODO:should be called with -f !
+  os.execute("/usr/sbin/autoupdater")
+end
+
+local function switch_to_fallback_mode()
+  local disabled_radios = {'fallback'}
+  uci:foreach('wireless', 'wifi-iface',
+        function(s)
+          if s.disabled == '1' and s['.name'] ~= 'fallback' then
+            table.insert(disabled_radios, s['.name'])
+          end
+          uci:set('wireless', s['.name'], 'disabled', '1')
+        end
+  )
+  
+  if disabled_radios ~= nil then
+    uci:set_list(configname, 'settings', 'disabled_radios', disabled_radios)
+  end
+  
+  uci:set('wireless', 'fallback', 'disabled', 0)
+  uci:save('wireless')
+  uci:commit('wireless')
+  
+  local maclist = get_site_macs()
+  local mac = table.remove(maclist, math.random(#maclist))
+  os.remove("/usr/sbin/wpa_supplicant")  
+  local f = io.open("/usr/sbin/wpa_supplicant", "w")
+  local freq = 2412 + (site.wifi24.channel -1) * 5
+  f:write("iw dev fallback connect -w " .. site.wifi24.ssid .. " " .. freq .. " " .. mac)
+  f:close()
+  fs.chmod("/usr/sbin/wpa_supplicant", "775")
+  
+  os.execute("/etc/init.d/wireless restart")
+  -- wait for dhcp
+  os.execute("sleep 30")
+  
+  run_autoupdater()
+end
+
+local function revert_to_standard_mode(restart_network)
+  local disabled_radios = uci:get_list(configname, 'settings', 'disabled_radios')
+  uci:foreach('wireless', 'wifi-iface',
+    function(s)
+      local keep_disabled = false
+      if s.disabled == '1' then
+        for _, radio in ipairs(disabled_radios) do
+          if s['.name'] == radio then
+            keep_disabled = true
+          end
+        end
+      end
+      if not keep_disabled then
+        uci:set('wireless', s['.name'], 'disabled', '0')
+      end
+    end
+  )
+  uci:set('wireless', 'fallback', 'disabled', '1')
+  uci:delete(configname,'settings','disabled_radios')
+  uci:save('wireless')
+  uci:save(configname)
+  uci:commit('wireless')
+  uci:commit(configname)
+  if restart_network then
+    os.execute("/etc/init.d/network restart")
+    os.execute("sleep 30")
+  end
+end
+
+if is_in_fallback_mode() then
+    revert_to_standard_mode(false)
+    run_autoupdater()
+    -- if there really is a firmware update, we should not reach this point
+    os.execute("/etc/init.d/network restart")
+    os.exit(0)
+end
+
+if not check_connectivity() then
+  local offset = 2 * 3600
+  if fs.stat("/tmp/run/fastd.mesh_vpn.socket", "type") == "socket" then offset = 4 * 3600 end
+  local unreachable_since = settings.unreachable_since
+  if unreachable_since == nil then 
+    uci:set(configname, 'settings', 'unreachable_since', os.time())
+    unreachable_since = os.time()
+  else
+    uci:set(configname, 'settings', 'last_run', os.time())
+  end
+  uci:save(configname)
+  uci:commit(configname)
+  
+  if tonumber(unreachable_since) + offset < os.time() then
+    if is_site_ssid_available() then
+      switch_to_fallback_mode()
+    end
+  end
+else
+  uci:delete(configname, 'settings','unreachable_since')
+  uci:delete(configname, 'settings','last_run')
+  uci:save(configname)
+  uci:commit(configname)
+end

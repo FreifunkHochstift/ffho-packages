@@ -1,0 +1,52 @@
+#!/usr/bin/lua
+
+local uci = require 'luci.model.uci'.cursor()
+local site = require 'gluon.site_config'
+local util = require 'gluon.util'
+local fs = require('nixio.fs')
+local sysctl = require 'gluon.sysctl'
+
+local radios = {}
+
+uci:foreach('wireless', 'wifi-device',
+  function(s)
+    table.insert(radios, s['.name'])
+  end
+)
+
+for _, radio in ipairs(radios) do
+  uci:delete('wireless', 'fallback')
+  uci:section('wireless', 'wifi-iface', 'fallback',
+  {
+    device = radio,
+    network = 'fallback',
+    mode = 'sta',
+    ssid = site.wifi24.ssid,
+    disabled = 1,
+    macaddr = util.generate_mac(3, 10),
+    ifname = 'fallback',
+    encryption = 'none',
+  }
+)
+end
+uci:delete('network','fallback')
+uci:section('network', 'interface', 'fallback',
+  {
+    ifname = 'fallback',
+  }
+)
+
+uci:save('wireless')
+uci:save('network')
+uci:commit('wireless')
+uci:commit('network')
+
+-- if there is no wpa_supplicant, just fake it
+if not fs.stat("/usr/sbin/wpa_supplicant", 'type') == 'reg' then
+  local f = io.open("/usr/sbin/wpa_supplicant", "w")
+  f:write("iw dev fallback connect -w " .. site.wifi24.ssid)
+  f:close()
+  fs.chmod("/usr/sbin/wpa_supplicant", "775")
+end
+
+sysctl.set('net.ipv6.conf.fallback.accept_ra=2', 0)
