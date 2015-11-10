@@ -88,13 +88,13 @@ if oldReport==nil then
 	-- get wireless status
 	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
 	debugdata = debugdata .. cmd("iw phy phy0 info")
-	debugdata = debugdata .. cmd("iw dev ibss0 info")
-	debugdata = debugdata .. cmd("iw dev ibss0 station dump")
+	debugdata = debugdata .. cmd("iw dev mesh0 info")
+	debugdata = debugdata .. cmd("iw dev mesh0 station dump")
 	debugdata = debugdata .. cmd("iw dev client0 station dump")
 	debugdata = debugdata .. cmd("iwinfo phy0 scan")
-	debugdata = debugdata .. cmd("iwinfo ibss0 info")
+	debugdata = debugdata .. cmd("iwinfo mesh0 info")
 	debugdata = debugdata .. cmd("iwinfo client0 info")
-	debugdata = debugdata .. cmd("iwinfo ibss0 assoclist")
+	debugdata = debugdata .. cmd("iwinfo mesh0 assoclist")
 	debugdata = debugdata .. cmd("iwinfo client0 assoclist")
 	debugdata = debugdata .. "---- END WIRELESS INFORMATION ----\n\n"
 
