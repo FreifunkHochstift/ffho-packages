@@ -32,7 +32,6 @@ define Package/ffho-config-mode-site-select/install
 	mkdir -p $(1)/lib/gluon/site-select/
 	$(CP) ./files/* $(1)/
 	$(CP) $(GLUON_SITEDIR)/extra/* $(1)/lib/gluon/site-select/
-	DIR=$(1) sh create-config.sh
 	$(call GluonInstallI18N,ffho-config-mode-site-select,$(1))
 endef
 
