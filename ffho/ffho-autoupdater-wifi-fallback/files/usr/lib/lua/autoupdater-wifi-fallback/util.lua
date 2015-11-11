@@ -2,7 +2,7 @@
 
 local uci = require('luci.model.uci').cursor()
 local site = require 'gluon.site_config'
-local json = require 'luci.json'
+local json = require 'luci.jsonc'
 local util = require("luci.util")
 
 
