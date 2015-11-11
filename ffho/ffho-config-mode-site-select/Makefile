@@ -28,8 +28,6 @@ define Build/Compile
 endef
 
 define Package/ffho-config-mode-site-select/install
-	mkdir -p $(1)/etc/config/
-	mkdir -p $(1)/lib/gluon/site-select/
 	$(CP) ./files/* $(1)/
 	$(CP) $(GLUON_SITEDIR)/extra/* $(1)/lib/gluon/site-select/
 	$(call GluonInstallI18N,ffho-config-mode-site-select,$(1))
