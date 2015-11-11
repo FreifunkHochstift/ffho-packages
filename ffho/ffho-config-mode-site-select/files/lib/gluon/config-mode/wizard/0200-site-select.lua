@@ -2,7 +2,6 @@ local cbi = require "luci.cbi"
 local i18n = require "luci.i18n"
 local uci = luci.model.uci.cursor()
 local site = require 'gluon.site_config'
-local fs = require "nixio.fs"
 local config = require 'gluon.sites'
 
 local M = {}
@@ -32,7 +31,7 @@ function M.handle(data)
 		uci:save('currentsite')
 		uci:commit('currentsite')		
 
-		os.execute('sh "/lib/gluon/site-upgrade"')
+		os.execute('sh "/lib/gluon/site-select/site-upgrade"')
 	end
 end
 

@@ -1,12 +1,8 @@
 #!/usr/bin/lua
 
-local uci = require 'luci.model.uci'
+local uci = require('luci.model.uci').cursor()
 local site = require 'gluon.site_config'
-local fs = require "nixio.fs"
-local c = uci.cursor()
 local config = require 'gluon.sites'
-
-local currentsite = c:get("currentsite", "current", "name")
 
 function serialize (f,o,d)
   if type(o) == "number" then
@@ -27,9 +23,11 @@ function serialize (f,o,d)
     end
     f:write(string.rep ("  ", d), "}")
   else
-    error("cannot serialize a " .. type(o))
+    f:write("ERROR: cannot serialize a " .. type(o))
   end
 end
+
+local currentsite = uci:get("currentsite", "current", "name")
 
 if site.site_code ~= currentsite then
   if type(config[currentsite]) == "table" then
@@ -61,8 +59,8 @@ if site.site_code ~= currentsite then
     f:write('\n')
     f:close()
   else
-    c:set("currentsite", "current", "name", site.site_code)
-    c:save('currentsite')
-    c:commit('currentsite')
+    uci:set("currentsite", "current", "name", site.site_code)
+    uci:save('currentsite')
+    uci:commit('currentsite')
   end
 end
