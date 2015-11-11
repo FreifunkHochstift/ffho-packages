@@ -35,8 +35,8 @@ endef
 define Package/ffho-debug/install
 	$(INSTALL_DIR) $(1)/bin/
 	$(INSTALL_BIN) ./files/bin/* $(1)/bin/
-	$(INSTALL_DIR) $(1)/lib/gluon/cron/
-	$(INSTALL_DATA) ./files/lib/gluon/cron/* $(1)/lib/gluon/cron/
+	$(INSTALL_DIR) $(1)/usr/lib/micron.d/
+	$(INSTALL_DATA) ./files/usr/lib/micron.d/* $(1)/usr/lib/micron.d/
 endef
 
 $(eval $(call BuildPackage,ffho-debug))
