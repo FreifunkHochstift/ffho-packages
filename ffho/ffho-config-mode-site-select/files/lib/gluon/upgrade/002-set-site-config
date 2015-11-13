@@ -30,35 +30,42 @@ end
 local currentsite = uci:get("currentsite", "current", "name")
 
 if site.site_code ~= currentsite then
-  if type(config[currentsite]) == "table" then
-    local new = {}
+  local configured = false
+  for index, tmp in pairs(config) do
+    if tmp.site_code == currentsite then
+      local new = {}
   
-    new.hostname_prefix = site.hostname_prefix
-    new.site_name = config[currentsite].site_name
-    new.site_code = config[currentsite].site_code
-    new.prefix4 = site.prefix4
-    new.prefix6 = site.prefix6
-    new.additional_prefix6 = site.additional_prefix6
-    new.timezone = site.timezone
-    new.ntp_servers = site.ntp_servers
-    new.opkg = site.opkg
-    new.regdom = site.regdom
-    new.wifi24 = site.wifi24
-    new.wifi5 = site.wifi5
---    new.wifi24.ap.ssid = config[currentsite].ssid
---    new.wifi5.ap.ssid = config[currentsite].ssid
-    new.next_node = site.next_node
-    new.fastd_mesh_vpn = site.fastd_mesh_vpn
-    new.autoupdater = site.autoupdater
-    new.debugserver = site.debugserver
-    new.batman_on_wan = site.batman_on_wan
+      new.hostname_prefix = site.hostname_prefix
+      new.site_name = tmp.site_name
+      new.site_code = tmp.site_code
+      new.prefix4 = site.prefix4
+      new.prefix6 = site.prefix6
+      new.additional_prefix6 = site.additional_prefix6
+      new.timezone = site.timezone
+      new.ntp_servers = site.ntp_servers
+      new.opkg_repo = site.opkg_repo
+      new.regdom = site.regdom
+      new.wifi24 = site.wifi24
+      new.wifi5 = site.wifi5
+      new.next_node = site.next_node
+      new.fastd_mesh_vpn = site.fastd_mesh_vpn
+      new.autoupdater = site.autoupdater
+      new.simple_tc = site.simple_tc
+      new.debugserver = site.debugserver
+      new.batman_on_wan = site.batman_on_wan
 
-    file = '/lib/gluon/site.conf'
-    f = io.open(file, "w")
-    serialize(f,new,0)
-    f:write('\n')
-    f:close()
-  else
+      file = '/lib/gluon/site.conf'
+      f = io.open(file, "w")
+      serialize(f,new,0)
+      f:write('\n')
+      f:close()
+
+      configured = true
+      break
+    end
+  end
+
+  if configured == false then
     uci:set("currentsite", "current", "name", site.site_code)
     uci:save('currentsite')
     uci:commit('currentsite')
