@@ -11,7 +11,7 @@ function is_site_ssid_available()
   local interfaces = util.split(util.trim(util.exec("iw dev | grep Interface | cut -d' ' -f2")))
   for _, ifname in ipairs(interfaces) do
     for line in io.popen(string.format("iw dev %s scan 2>/dev/null", ifname)):lines() do
-        if line:match("SSID: " .. site.wifi24.ssid) then
+        if line:match("SSID: " .. site.wifi24.ap.ssid) then
           found = true
         end
     end
@@ -22,7 +22,7 @@ end
 
 function get_site_macs()
   local macs = {}
-  local interfaces = util.split(util.trim(util.exec(string.format("iw dev mesh0 scan | grep -B10 %s | grep BSS | cut -f2 -d' ' | cut -f1 -d'('", site.wifi24.ssid))))
+  local interfaces = util.split(util.trim(util.exec(string.format("iw dev mesh0 scan | grep -B10 %s | grep BSS | cut -f2 -d' ' | cut -f1 -d'('", site.wifi24.ap.ssid))))
   for _, mac in ipairs(interfaces) do
     table.insert(macs, mac)
   end

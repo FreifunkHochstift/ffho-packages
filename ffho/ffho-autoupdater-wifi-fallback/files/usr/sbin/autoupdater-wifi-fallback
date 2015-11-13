@@ -86,7 +86,7 @@ local function switch_to_fallback_mode()
   os.remove("/usr/sbin/wpa_supplicant")  
   local f = io.open("/usr/sbin/wpa_supplicant", "w")
   local freq = 2412 + (site.wifi24.channel -1) * 5
-  f:write("iw dev fallback connect -w " .. site.wifi24.ssid .. " " .. freq .. " " .. mac)
+  f:write("iw dev fallback connect -w " .. site.wifi24.ap.ssid .. " " .. freq .. " " .. mac)
   f:close()
   fs.chmod("/usr/sbin/wpa_supplicant", "775")
   

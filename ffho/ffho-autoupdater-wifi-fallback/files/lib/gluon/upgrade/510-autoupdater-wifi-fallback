@@ -21,7 +21,7 @@ for _, radio in ipairs(radios) do
     device = radio,
     network = 'fallback',
     mode = 'sta',
-    ssid = site.wifi24.ssid,
+    ssid = site.wifi24.ap.ssid,
     disabled = 1,
     macaddr = util.generate_mac(3, 10),
     ifname = 'fallback',
@@ -44,7 +44,7 @@ uci:commit('network')
 -- if there is no wpa_supplicant, just fake it
 if not fs.stat("/usr/sbin/wpa_supplicant", 'type') == 'reg' then
   local f = io.open("/usr/sbin/wpa_supplicant", "w")
-  f:write("iw dev fallback connect -w " .. site.wifi24.ssid)
+  f:write("iw dev fallback connect -w " .. site.wifi24.ap.ssid)
   f:close()
   fs.chmod("/usr/sbin/wpa_supplicant", "775")
 end
