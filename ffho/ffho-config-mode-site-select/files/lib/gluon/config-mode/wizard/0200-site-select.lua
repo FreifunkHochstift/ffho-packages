@@ -21,7 +21,9 @@ function M.section(form)
 	end
 
 	for index, tmp in pairs(config) do
-		o:value(tmp.site_code, tmp.site_name)
+		if tmp.site_select == nil or tmp.site_select.hidden ~= 1 then
+			o:value(tmp.site_code, tmp.site_name)
+		end
 	end
 end
 
@@ -29,7 +31,7 @@ function M.handle(data)
 	if data.community ~= uci:get('currentsite', 'current', 'name') then
 		uci:set('currentsite', 'current', 'name', data.community)
 		uci:save('currentsite')
-		uci:commit('currentsite')		
+		uci:commit('currentsite')
 
 		os.execute('sh "/lib/gluon/site-select/site-upgrade"')
 	end
