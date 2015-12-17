@@ -1,0 +1,72 @@
+#!/usr/bin/lua
+
+site = require("gluon.site_config")
+uci = require('luci.model.uci').cursor()
+
+--- wrapper for calling systemcommands
+function cmd(_command)
+        local f = io.popen(_command)
+        local l = f:read("*a")
+        f:close()
+        return l
+end
+
+--- first of all, get 2.4GHz wifi interface
+local interface24 = false
+if uci:get('wireless', 'radio0', 'hwmode') then
+	hwmode = uci:get('wireless', 'radio0', 'hwmode')
+	if hwmode == '11g' then
+		interface24 = 'radio0'
+	end
+end
+
+--- try with radio1 if radio0 seems not the correct interface
+if not interface24 and uci:get('wireless', 'radio1', 'hwmode') then
+        hwmode = uci:get('wireless', 'radio1', 'hwmode')
+        if hwmode == '11g' then
+                interface24 = 'radio1'
+        end
+end
+
+--- check if txpower is already set. if so, we have nothing to do
+if uci:get('wireless', interface24, 'txpower') then
+	os.exit(0)
+end
+
+--- get corresponding wifi interface
+configuredInterface = ''
+interfaceList = uci:get_all('wireless')
+for interface, value in pairs(interfaceList) do
+	if uci:get('wireless', interface, 'device') == interface24 and
+		uci:get('wireless', interface, 'disabled') == '0' then
+		configuredInterface = uci:get('wireless', interface, 'ifname')
+		break
+	end
+end
+if configuredInterface == '' then
+	exit(0) -- we didn't find an active wifi interface
+end
+
+--- get current txpower
+t = cmd('iwinfo ' .. configuredInterface .. ' info | grep Tx-Power | awk \'{print $2}\'')
+currentTxPower = string.gsub(t, "\n", "")
+currentTxPower = tonumber(currentTxPower)
+
+--- get maximum possible Tx-Power
+t = cmd('iwinfo ' .. configuredInterface .. ' txpowerlist | tail -n 1 | sed -e \'s/\\\*//\' | awk \'{print $1}\'')
+maximumTxPower = string.gsub(t, "\n", "")
+maximumTxPower = tonumber(maximumTxPower)
+
+--- if current and maximum power differs, apply workaround
+if maximumTxPower > 20 then
+	maximumTxPower = 20 -- we are in Germany!
+end
+
+if currentTxPower < maximumTxPower then
+	uci:set('wireless', interface24, 'country', '00')
+	uci:set('wireless', interface24, 'txpower', maximumTxPower)
+	uci:save('wireless')
+	uci:commit('wireless')
+	cmd('wifi')
+end
+
