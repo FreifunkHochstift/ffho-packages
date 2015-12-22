@@ -35,30 +35,11 @@ define Build/Compile
 endef
 
 define Package/ffho-openwrt-migration-tools/preinst
-#!/bin/sh
-cd "$${IPKG_INSTROOT}/lib/netifd/wireless/"
-if [ -f "mac80211.sh" ] ; then
-        /bin/rm "./mac80211.sh"
-fi
-cd "$${IPKG_INSTROOT}/lib/netifd/"
-if [ -f "hostapd.sh" ] ; then
-	/bin/rm "./hostapd.sh"
-fi
-cd "$${IPKG_INSTROOT}/lib/wifi/"
-if [ -f "mac80211.sh" ] ; then
-	/bin/rm "./mac80211.sh"
-fi
-exit 0
 endef
 
 define Package/ffho-openwrt-migration-tools/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
-	$(INSTALL_DIR) $(1)/lib/netifd/wireless/
-	$(INSTALL_DIR) $(1)/lib/wifi/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/40-wireless-config-hwmode-fix $(1)/etc/uci-defaults/
-	$(INSTALL_BIN) ./files/lib/netifd/wireless/mac80211.sh $(1)/lib/netifd/wireless/
-	$(CP) ./files/lib/netifd/hostapd.sh $(1)/lib/netifd/
-	$(CP) ./files/lib/wifi/mac80211.sh $(1)/lib/wifi/
 endef
 
 $(eval $(call BuildPackage,ffho-openwrt-migration-tools))
