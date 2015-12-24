@@ -39,7 +39,6 @@ endef
 
 define Package/ffho-openwrt-migration-tools/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults/
-	$(INSTALL_BIN) ./files/etc/uci-defaults/40-wireless-config-hwmode-fix $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/etc/uci-defaults/90-tl-841v10-autoupdater-to-stable $(1)/etc/uci-defaults/
 endef
 
