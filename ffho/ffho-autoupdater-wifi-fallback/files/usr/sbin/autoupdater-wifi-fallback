@@ -9,21 +9,34 @@ local settings = uci:get_all(configname, 'settings')
 local ut = require('autoupdater-wifi-fallback.util')
 local debug = true
 
+-- parse arguments
+local force = false
+local i = 1
+while arg[i] do
+  if arg[i] == '-f' then
+    print("I will do what you want")
+    force = true
+  end
+  i = i+1
+end
+
 -- preflight checks
 
-if settings.enabled ~= '1' or uci:get('autoupdater','settings','enabled') ~= '1' then
-  if debug then io.stderr:write('connectivity checks or autoupdater are disabled.\n') end
-  os.exit(0)
-end
-
-if fs.stat("/tmp/run/fastd.mesh_vpn.socket", "type") == "socket" then
-  if debug then io.stderr:write('we have a valid socket for fastd. no fallback required.\n') end
-  os.exit(0)
-end
-
-if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < tonumber(settings.min_uptime_secs) then
-  if debug then io.stderr:write('we just booted. check skipped.\n') end
-  os.exit(0)
+if not force then
+  if settings.enabled ~= '1' or uci:get('autoupdater','settings','enabled') ~= '1' then
+    if debug then io.stderr:write('connectivity checks or autoupdater are disabled.\n') end
+    os.exit(0)
+  end
+  
+  if fs.stat("/tmp/run/fastd.mesh_vpn.socket", "type") == "socket" then
+    if debug then io.stderr:write('we have a valid socket for fastd. no fallback required.\n') end
+    os.exit(0)
+  end
+  
+  if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < tonumber(settings.min_uptime_secs) then
+    if debug then io.stderr:write('we just booted. check skipped.\n') end
+    os.exit(0)
+  end
 end
 
 local function check_connectivity()
