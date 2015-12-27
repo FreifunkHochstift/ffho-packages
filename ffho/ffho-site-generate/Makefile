@@ -1,0 +1,42 @@
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=ffho-site-generate
+PKG_VERSION:=1
+PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
+
+PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/ffho-site-generate
+  SECTION:=ffho
+  CATEGORY:=Gluon
+  TITLE:=
+  DEPENDS:=+gluon-core +busybox
+  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
+  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
+endef
+
+define Package/ffho-site-generate/description
+endef
+
+define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
+endef
+
+define Build/Configure
+endef
+
+define Build/Compile
+endef
+
+define Package/ffho-site-generate/preinst
+endef
+
+define Package/ffho-site-generate/install
+  $(CP) ./files/* $(1)/
+  $(CP) $(GLUON_SITEDIR)/extra/* $(1)/lib/gluon/site-select/
+endef
+
+$(eval $(call BuildPackage,ffho-site-generate))
