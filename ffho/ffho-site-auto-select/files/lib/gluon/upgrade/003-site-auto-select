@@ -1,0 +1,47 @@
+#!/usr/bin/lua
+
+local config = require 'gluon.sites'
+local uci = require('luci.model.uci').cursor()
+
+function is_site_valid(site)
+  for _, tmp in pairs(config) do
+    if tmp.site_code == site then
+      return true
+    end
+  end
+  return false
+end
+
+function set_currentsite(site)
+  if site and is_site_valid(site) then
+    uci:set('currentsite', 'current', 'name', site)
+    uci:save('currentsite')
+    uci:commit('currentsite')
+    return true
+  end
+  return false
+end
+
+function get_site_by_geo(latitude, longitude)
+  return nil
+end
+
+local currentsite = uci:get('currentsite', 'current', 'name')
+local configured = is_site_valid(currentsite)
+
+if configured == false then
+  local latitude = uci:get_first('gluon-node-info', 'location', 'latitude')
+  local longitude = uci:get_first('gluon-node-info', 'location', 'longitude')
+  if latitude and longitude then
+    currentsite = get_site_by_geo(latitude, longitude)
+    configured = set_currentsite(currentsite)
+  end
+end
+
+if configured == false then
+  local minute = math.random(0, 59)
+  local f = io.open('/lib/gluon/cron/ffho-site-auto-select', 'w')
+  f:write(string.format('%i * * * * /usr/sbin/ffho-site-auto-select\n', minute))
+  f:close()
+end
+
