@@ -5,19 +5,19 @@ local site = require 'gluon.site_config'
 local json = require 'luci.jsonc'
 local util = require("luci.util")
 
-
-function is_site_ssid_available()
-  local found = false
+function get_available_wifi_networks()
   local interfaces = util.split(util.trim(util.exec("iw dev | grep Interface | cut -d' ' -f2")))
   for _, ifname in ipairs(interfaces) do
     for line in io.popen(string.format("iw dev %s scan 2>/dev/null", ifname)):lines() do
-        if line:match("SSID: " .. site.wifi24.ap.ssid) then
-          found = true
-        end
+      net = line:match(".+.freifunk.net.*")
+      if net then
+	netname = net:sub(8)
+	return netname
+      end
     end
   end
 
-  return found
+  return false
 end
 
 function get_site_macs()

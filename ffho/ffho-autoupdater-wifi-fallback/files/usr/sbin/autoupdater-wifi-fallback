@@ -72,10 +72,11 @@ end
 
 local function run_autoupdater()
   -- TODO:should be called with -f !
-  os.execute("/usr/sbin/autoupdater")
+  os.execute("/usr/sbin/autoupdater -f")
 end
 
-local function switch_to_fallback_mode()
+local function switch_to_fallback_mode(wifiNetwork)
+  print("I will connect to: " .. wifiNetwork)
   local disabled_radios = {'fallback'}
   uci:foreach('wireless', 'wifi-iface',
         function(s)
@@ -89,28 +90,21 @@ local function switch_to_fallback_mode()
   if disabled_radios ~= nil then
     uci:set_list(configname, 'settings', 'disabled_radios', disabled_radios)
   end
-  
+ 
+  uci:set('wireless', 'fallback', 'ssid', wifiNetwork) 
   uci:set('wireless', 'fallback', 'disabled', 0)
   uci:save('wireless')
   uci:commit('wireless')
-  
-  local maclist = get_site_macs()
-  local mac = table.remove(maclist, math.random(#maclist))
-  os.remove("/usr/sbin/wpa_supplicant")  
-  local f = io.open("/usr/sbin/wpa_supplicant", "w")
-  local freq = 2412 + (site.wifi24.channel -1) * 5
-  f:write("iw dev fallback connect -w " .. site.wifi24.ap.ssid .. " " .. freq .. " " .. mac)
-  f:close()
-  fs.chmod("/usr/sbin/wpa_supplicant", "775")
-  
-  os.execute("/etc/init.d/wireless restart")
-  -- wait for dhcp
-  os.execute("sleep 30")
-  
-  run_autoupdater()
+
+  io.popen("wifi")
+  os.execute("sleep 5")
+  os.execute("iw dev fallback connect -w " .. wifiNetwork)
+  os.execute("echo \"2\" > /proc/sys/net/ipv6/conf/fallback/accept_ra")
+  os.execute("sleep 20")
 end
 
 local function revert_to_standard_mode(restart_network)
+  print("Going back to standard config")
   local disabled_radios = uci:get_list(configname, 'settings', 'disabled_radios')
   uci:foreach('wireless', 'wifi-iface',
     function(s)
@@ -160,9 +154,15 @@ if not check_connectivity() then
   uci:save(configname)
   uci:commit(configname)
   
-  if tonumber(unreachable_since) + offset < os.time() then
-    if is_site_ssid_available() then
-      switch_to_fallback_mode()
+  if tonumber(unreachable_since) + offset < os.time() or force then
+    wifiNetwork = get_available_wifi_networks()
+    if wifiNetwork then
+      switch_to_fallback_mode(wifiNetwork)
+
+      run_autoupdater()
+      
+      -- this is only reached if no updated happened
+      revert_to_standard_mode(true)
     end
   end
 else
