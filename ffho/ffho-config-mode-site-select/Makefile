@@ -14,7 +14,7 @@ define Package/ffho-config-mode-site-select
   SECTION:=gluon
   CATEGORY:=Gluon
   TITLE:=UI for changing the node-config
-  DEPENDS:=ffho-site-generate
+  DEPENDS:=+gluon-config-mode-core-virtual +ffho-site-generate
 endef
 
 define Build/Prepare
