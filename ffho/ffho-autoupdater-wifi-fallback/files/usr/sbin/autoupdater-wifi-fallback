@@ -105,7 +105,6 @@ local function revert_to_standard_mode(restart_network)
   print("Going back to standard config")
   uci:revert('wireless')
   uci:save('wireless')
-  uci:commit('wireless')
   if restart_network then
     os.execute("/etc/init.d/network restart")
     os.execute("sleep 30")
