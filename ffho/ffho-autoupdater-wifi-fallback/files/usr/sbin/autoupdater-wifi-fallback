@@ -62,11 +62,17 @@ local function check_connectivity()
       end
     end
   end
+
   
-  -- ipv6 connectivity check against google dns
-  if os.execute("ping6 -w2 -c1 2001:4860:4860::8888 > /dev/null 2>&1") == 0 then
-    return true
+  -- connectivity check against updateserver
+  local updateHosts = get_update_hosts()
+  while #updateHosts > 0 do
+    host = table.remove(updateHosts)
+    if os.execute("ping -w2 -c1 " .. host .. " > /dev/null 2>&1") == 0 then
+      return true
+    end
   end
+
   return false
 end
 

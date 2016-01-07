@@ -20,6 +20,19 @@ function get_available_wifi_networks()
   return false
 end
 
+function get_update_hosts()
+  local hosts = {}
+  local branch = uci:get('autoupdater', 'settings', 'branch')
+  local mirrors = uci:get_list('autoupdater', branch, 'mirror')
+
+  while #mirrors > 0 do
+    local m = table.remove(mirrors)
+    mirror = m:match("://%[?([a-zA-Z0-9\:\.]+)%]?/")
+    table.insert(hosts, 1, mirror)
+  end
+  return hosts
+end
+
 function get_site_macs()
   local macs = {}
   local interfaces = util.split(util.trim(util.exec(string.format("iw dev mesh0 scan | grep -B10 %s | grep BSS | cut -f2 -d' ' | cut -f1 -d'('", site.wifi24.ap.ssid))))
