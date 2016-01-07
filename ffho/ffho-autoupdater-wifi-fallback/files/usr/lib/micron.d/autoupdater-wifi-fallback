@@ -1,1 +1,1 @@
-*/29 * * * * /usr/sbin/autoupdater-wifi-fallback
+29 * * * * /usr/sbin/autoupdater-wifi-fallback
