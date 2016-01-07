@@ -80,21 +80,13 @@ local function switch_to_fallback_mode(wifiNetwork)
   local disabled_radios = {'fallback'}
   uci:foreach('wireless', 'wifi-iface',
         function(s)
-          if s.disabled == '1' and s['.name'] ~= 'fallback' then
-            table.insert(disabled_radios, s['.name'])
-          end
           uci:set('wireless', s['.name'], 'disabled', '1')
         end
   )
   
-  if disabled_radios ~= nil then
-    uci:set_list(configname, 'settings', 'disabled_radios', disabled_radios)
-  end
- 
   uci:set('wireless', 'fallback', 'ssid', wifiNetwork) 
   uci:set('wireless', 'fallback', 'disabled', 0)
   uci:save('wireless')
-  uci:commit('wireless')
 
   io.popen("wifi")
   os.execute("sleep 5")
@@ -105,28 +97,9 @@ end
 
 local function revert_to_standard_mode(restart_network)
   print("Going back to standard config")
-  local disabled_radios = uci:get_list(configname, 'settings', 'disabled_radios')
-  uci:foreach('wireless', 'wifi-iface',
-    function(s)
-      local keep_disabled = false
-      if s.disabled == '1' then
-        for _, radio in ipairs(disabled_radios) do
-          if s['.name'] == radio then
-            keep_disabled = true
-          end
-        end
-      end
-      if not keep_disabled then
-        uci:set('wireless', s['.name'], 'disabled', '0')
-      end
-    end
-  )
-  uci:set('wireless', 'fallback', 'disabled', '1')
-  uci:delete(configname,'settings','disabled_radios')
+  uci:revert('wireless')
   uci:save('wireless')
-  uci:save(configname)
   uci:commit('wireless')
-  uci:commit(configname)
   if restart_network then
     os.execute("/etc/init.d/network restart")
     os.execute("sleep 30")
@@ -152,7 +125,6 @@ if not check_connectivity() then
     uci:set(configname, 'settings', 'last_run', os.time())
   end
   uci:save(configname)
-  uci:commit(configname)
   
   if tonumber(unreachable_since) + offset < os.time() or force then
     wifiNetwork = get_available_wifi_networks()
@@ -169,5 +141,4 @@ else
   uci:delete(configname, 'settings','unreachable_since')
   uci:delete(configname, 'settings','last_run')
   uci:save(configname)
-  uci:commit(configname)
 end
