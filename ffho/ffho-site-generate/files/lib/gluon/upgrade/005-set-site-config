@@ -34,7 +34,7 @@ if site.site_code ~= currentsite then
   for index, tmp in pairs(config) do
     if tmp.site_code == currentsite then
       local new = {}
-  
+
       new.hostname_prefix = site.hostname_prefix
       new.site_name = tmp.site_name
       new.site_code = tmp.site_code
