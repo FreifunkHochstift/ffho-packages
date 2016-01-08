@@ -1,62 +1,39 @@
 #!/usr/bin/lua
 
 local uci = require('luci.model.uci').cursor()
-local site = require 'gluon.site_config'
-local config = require 'gluon.sites'
+local json =  require 'luci.jsonc'
+local site_code = require('gluon.site_config').site_code
+local default = json.decode(io.open('/lib/gluon/site-select/default.json'):read('*a'))
+local groups = json.decode(io.open('/lib/gluon/site-select/groups.json'):read('*a'))
+local sites = json.decode(io.open('/lib/gluon/site-select/sites.json'):read('*a'))
 
-function serialize (f,o,d)
-  if type(o) == "number" then
-    f:write(o)
-  elseif type(o) == "string" then
-    f:write(string.format("%q", o))
-  elseif type(o) == "boolean" then
-    f:write(o and 1 or 0)
-  elseif type(o) == "table" then
-    f:write("{\n")
-    for k,v in pairs(o) do
-      f:write(string.rep ("  ", d+1))
-      if type(k) == "string" then
-        f:write(k, " = ")
+function add_var_to_table(table, var)
+  if type(var) == "table" and type(table) == "table" then
+    for name, value in pairs(var) do
+      if table[name] and type(value) == "table" then
+        table[name] = add_var_to_table(table[name], value)
+      else
+        table[name]=value
       end
-      serialize(f,v,d+1)
-      f:write(",\n")
     end
-    f:write(string.rep ("  ", d), "}")
-  else
-    f:write("ERROR: cannot serialize a " .. type(o))
   end
+  return table
 end
 
 local currentsite = uci:get("currentsite", "current", "name")
 
-if site.site_code ~= currentsite then
+if site_code ~= currentsite then
   local configured = false
-  for index, tmp in pairs(config) do
-    if tmp.site_code == currentsite then
-      local new = {}
-
-      new.hostname_prefix = site.hostname_prefix
-      new.site_name = tmp.site_name
-      new.site_code = tmp.site_code
-      new.prefix4 = site.prefix4
-      new.prefix6 = site.prefix6
-      new.additional_prefix6 = site.additional_prefix6
-      new.timezone = site.timezone
-      new.ntp_servers = site.ntp_servers
-      new.opkg = site.opkg
-      new.regdom = site.regdom
-      new.wifi24 = site.wifi24
-      new.wifi5 = site.wifi5
-      new.next_node = site.next_node
-      new.fastd_mesh_vpn = site.fastd_mesh_vpn
-      new.autoupdater = site.autoupdater
-      new.debugserver = site.debugserver
-      new.batman_on_wan = site.batman_on_wan
+  for index, site in pairs(sites) do
+    if site.site_code == currentsite then
+      if site.site_select.group and groups and groups[site.site_select.group] then
+        default = add_var_to_table(default, groups[site.site_select.group])
+      end
+      default = add_var_to_table(default, site)
 
       file = '/lib/gluon/site.conf'
       f = io.open(file, "w")
-      serialize(f,new,0)
-      f:write('\n')
+      io.write(f,json.encode(default))
       f:close()
 
       configured = true
@@ -65,7 +42,7 @@ if site.site_code ~= currentsite then
   end
 
   if configured == false then
-    uci:set("currentsite", "current", "name", site.site_code)
+    uci:set("currentsite", "current", "name", site_code)
     uci:save('currentsite')
     uci:commit('currentsite')
   end
