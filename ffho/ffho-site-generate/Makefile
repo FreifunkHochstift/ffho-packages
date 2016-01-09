@@ -14,7 +14,7 @@ define Package/ffho-site-generate
   SECTION:=ffho
   CATEGORY:=Gluon
   TITLE:=Scripts for generating a new site.json
-  DEPENDS:=+gluon-core
+  DEPENDS:=+gluon-core +luci-lib-json
   MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
   SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
@@ -39,10 +39,8 @@ endef
 define Package/ffho-site-generate/install
 	$(CP) ./files/* $(1)/
 	lua -e 'print(require("cjson").encode(assert(dofile("$(GLUONDIR)/scripts/site_config.lua"))))' > $(1)/lib/gluon/site-select/default.json
-	lua -e 'print(require("cjson").encode(assert(dofile(" ./scripts/sites.lua"))))' >  $(1)/lib/gluon/site-select/sites.json
-	if [ -e $(GLUON_SITEDIR)/extra/groups.conf  ]; then
-		lua -e 'print(require("cjson").encode(assert(dofile(" ./scripts/groupes.lua"))))' >  $(1)/lib/gluon/site-select/groups.json
-	fi
+	lua -e 'print(require("cjson").encode(assert(dofile("./scripts/sites.lua"))))' >  $(1)/lib/gluon/site-select/sites.json
+	if [ -e $(GLUON_SITEDIR)/extra/groups.conf  ]; then lua -e 'print(require("cjson").encode(assert(dofile("./scripts/groupes.lua"))))' >  $(1)/lib/gluon/site-select/groups.json; fi
 endef
 
 $(eval $(call BuildPackage,ffho-site-generate))

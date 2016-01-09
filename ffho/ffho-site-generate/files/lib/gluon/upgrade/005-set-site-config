@@ -1,11 +1,18 @@
 #!/usr/bin/lua
 
 local uci = require('luci.model.uci').cursor()
-local json =  require 'luci.jsonc'
+local json =  require 'luci.json'
 local site_code = require('gluon.site_config').site_code
-local default = json.decode(io.open('/lib/gluon/site-select/default.json'):read('*a'))
-local groups = json.decode(io.open('/lib/gluon/site-select/groups.json'):read('*a'))
-local sites = json.decode(io.open('/lib/gluon/site-select/sites.json'):read('*a'))
+
+function get_config(file)
+  local f = io.open(file)
+  if f then
+    local config = json.decode(f:read('*a'))
+    f:close()
+    return config
+  end
+  return nil
+end
 
 function add_var_to_table(table, var)
   if type(var) == "table" and type(table) == "table" then
@@ -20,20 +27,23 @@ function add_var_to_table(table, var)
   return table
 end
 
+local default = get_config('/lib/gluon/site-select/default.json')
+local groups = get_config('/lib/gluon/site-select/groups.json')
+local sites = get_config('/lib/gluon/site-select/sites.json')
 local currentsite = uci:get("currentsite", "current", "name")
 
 if site_code ~= currentsite then
   local configured = false
   for index, site in pairs(sites) do
     if site.site_code == currentsite then
-      if site.site_select.group and groups and groups[site.site_select.group] then
+      if site.site_select and site.site_select.group and groups and groups[site.site_select.group] then
         default = add_var_to_table(default, groups[site.site_select.group])
       end
       default = add_var_to_table(default, site)
 
-      file = '/lib/gluon/site.conf'
-      f = io.open(file, "w")
-      io.write(f,json.encode(default))
+      local file = '/lib/gluon/site.conf'
+      local f = io.open(file, "w")
+      f:write(json.encode(default))
       f:close()
 
       configured = true
