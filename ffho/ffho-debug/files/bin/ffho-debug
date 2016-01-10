@@ -64,7 +64,7 @@ if oldReport==nil then
 
     -- show uci variables
 	debugdata = debugdata .. "---- BEGIN UCI VARIABLES ----\n"
-	debugdata = debugdata .. cmd("uci show")
+	debugdata = debugdata .. cmd("uci show | grep -v '\.key' | grep -v '\.secret'")
 	debugdata = debugdata .. "---- END UCI VARIABLES ----\n\n"
 
 	-- now get some information about the network status
