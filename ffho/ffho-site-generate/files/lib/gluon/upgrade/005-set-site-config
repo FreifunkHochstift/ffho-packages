@@ -41,7 +41,7 @@ if site_code ~= currentsite then
       end
       default = add_var_to_table(default, site)
 
-      local file = '/lib/gluon/site.conf'
+      local file = '/lib/gluon/site.json'
       local f = io.open(file, "w")
       f:write(json.encode(default))
       f:close()
