@@ -1,0 +1,58 @@
+#!/usr/bin/lua
+
+local uci = require('luci.model.uci').cursor()
+local json = require 'luci.json'
+
+function get_config(file)
+  local f = io.open(file)
+  if f then
+    local config = json.decode(f:read('*a'))
+    f:close()
+    return config
+  end
+  return nil
+end
+
+function is_site_valid(site_code)
+  local sites = get_config('/lib/gluon/site-select/sites.json')
+  for _, site in pairs(sites) do
+    if site.site_code == site_code then
+      return true
+    end
+  end
+  return false
+end
+
+function set_currentsite(site_code)
+  if site_code and is_site_valid(site_code) then
+    uci:set('currentsite', 'current', 'name', site_code)
+    uci:save('currentsite')
+    uci:commit('currentsite')
+    return true
+  end
+  return false
+end
+
+function get_site_by_geo(latitude, longitude)
+  return nil
+end
+
+local currentsite = uci:get('currentsite', 'current', 'name')
+local configured = is_site_valid(currentsite)
+
+if configured == false then
+  local latitude = uci:get_first('gluon-node-info', 'location', 'latitude')
+  local longitude = uci:get_first('gluon-node-info', 'location', 'longitude')
+  if latitude and longitude then
+    currentsite = get_site_by_geo(latitude, longitude)
+    configured = set_currentsite(currentsite)
+  end
+end
+
+if configured == false then
+  local minute = math.random(0, 59)
+  local f = io.open('/usr/lib/micron.d/ffho-site-auto-select', 'w')
+  f:write(string.format('%i * * * * /usr/sbin/ffho-site-auto-select\n', minute))
+  f:close()
+end
+

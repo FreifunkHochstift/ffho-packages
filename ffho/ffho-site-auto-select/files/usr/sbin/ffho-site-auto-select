@@ -1,0 +1,58 @@
+#!/usr/bin/lua
+
+local util = require("luci.util")
+local json = require("luci.json")
+local config = require 'gluon.sites'
+local uci = require('luci.model.uci').cursor()
+local site_code = require('gluon.site_config').side_code
+local tools = require 'gluon.site_generate'
+
+function neighbours(ifname)
+  local info = util.exec("gluon-neighbour-info -d ff02::2:1001 -p 1001 -r nodeinfo -t 2 -i " .. ifname)
+  local macs = {}
+  for _, line in ipairs(util.split(info)) do
+    local data = json.decode(line)
+    if data and data["network"] then
+      local mac = data["network"]["mac"]
+      if mac then
+        macs[mac] = data
+      end
+    end
+  end
+
+  return macs
+end
+
+function get_neighbour_site()
+  local interfaces = util.split(util.trim(util.exec("batctl if | grep active | grep -v mesh-vpn | cut -d':' -f1")))
+  for _, ifname in ipairs(interfaces) do
+    local macs = neighbours(ifname)
+    for _, node in pairs(macs) do
+      if node["system"] then
+        local node_site = node["system"]["site_code"]
+        if node_site and tools.validate_site(node_site) then
+          return node_site
+        end
+      end
+    end
+  end
+
+  return nil
+end
+
+local currentsite = uci:get('currentsite', 'current', 'name')
+local configured = tools.validate_site(currentsite)
+
+if configured == false then
+  currentsite = get_neighbour_site()
+  configured = tools.set_site_code(currentsite)
+end
+
+if configured then
+  os.remove("/usr/lib/micron.d/ffho-site-auto-select")
+  if site_code ~= currentsite then
+    os.execute("/lib/gluon/site-select/site-upgrade >/dev/null 2>&1")
+    os.execute("reboot >/dev/null 2>&1")
+  end
+end
+
