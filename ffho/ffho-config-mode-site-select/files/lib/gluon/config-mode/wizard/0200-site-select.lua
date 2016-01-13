@@ -1,24 +1,13 @@
 local cbi = require "luci.cbi"
 local i18n = require "luci.i18n"
-local uci = luci.model.uci.cursor()
+local uci = require('luci.model.uci').cursor()
 local default = require 'gluon.site_config'
-local json =  require 'luci.json'
+local tools = require 'gluon.site_generate'
 
 local M = {}
 
-function get_config(file)
-  local f = io.open(file)
-  if f then
-    local config = json.decode(f:read('*a'))
-    f:close()
-    return config
-  end
-  return nil
-end
-
-
 function M.section(form)
-  local sites = get_config('/lib/gluon/site-select/sites.json')
+  local sites = tools.get_config('/lib/gluon/site-select/sites.json')
 
   local msg = i18n.translate('gluon-config-mode:site-select')
   local s = form:section(cbi.SimpleSection, nil, msg)
@@ -42,9 +31,7 @@ end
 
 function M.handle(data)
   if data.community ~= uci:get('currentsite', 'current', 'name') then
-    uci:set('currentsite', 'current', 'name', data.community)
-    uci:save('currentsite')
-    uci:commit('currentsite')
+    tools.set_site_code(data.community)
   end
 
   if data.community ~= default.site_code then
