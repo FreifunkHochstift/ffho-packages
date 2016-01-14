@@ -2,7 +2,6 @@
 
 local util = require("luci.util")
 local json = require("luci.json")
-local config = require 'gluon.sites'
 local uci = require('luci.model.uci').cursor()
 local site_code = require('gluon.site_config').side_code
 local tools = require 'gluon.site_generate'
