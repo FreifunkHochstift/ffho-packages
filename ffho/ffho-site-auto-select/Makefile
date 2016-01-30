@@ -4,6 +4,8 @@ PKG_NAME:=ffho-site-auto-select
 PKG_VERSION:=1
 PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
 
+PFG_BUILD_DEPENDS := lua-cjson/host
+
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
