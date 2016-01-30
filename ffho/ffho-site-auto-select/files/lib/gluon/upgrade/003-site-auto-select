@@ -5,6 +5,8 @@ local json = require 'luci.json'
 local tools = require 'gluon.site_generate'
 local shape = require 'gluon.pointwithinshape'
 
+local geo_default_site = "ffho_yho"
+
 function get_config(file)
   local f = io.open(file)
   if f then
@@ -36,17 +38,18 @@ function set_currentsite(site_code)
 end
 
 function get_site_by_geo(latitude, longitude)
-  os.execute('gunzip -c /lib/gluon/site-select/site-coords.gz > /tmp/site-coords.json')
-  local sites = tools.get_config('/tmp/site-coords.json')
-  os.remove('/tmp/site-coords.json')
+  if not latitude or not longitude then
+    return nil
+  end
 
+  local sites = tools.get_config('/lib/gluon/site-selcet/geo.json').features
   for _,site in ipairs(sites) do
-    if shape.PointWithinShape(site.coords, latitude, longitude) == true then
-      return site.site_code
+    if site.geometry and site.geometry.coordinates and shape.PointWithinShape(site.geometry.coordinates, latitude, longitude) then
+      return site.properties.site_code
     end
   end
 
-  return "ffho_yho"
+  return geo_default_site
 end
 
 local currentsite = uci:get('currentsite', 'current', 'name')

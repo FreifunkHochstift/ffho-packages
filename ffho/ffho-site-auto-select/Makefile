@@ -37,6 +37,7 @@ endef
 
 define Package/ffho-site-auto-select/install
   $(CP) ./files/* $(1)/
+  lua -e 'print(require("cjson").encode(require("cjson").decode(io.open("$(GLUON_SITEDIR)/extra/geo.json"):read('*a'))))' >  $(1)/lib/gluon/site-select/geo.json
 endef
 
 $(eval $(call BuildPackage,ffho-site-auto-select))
