@@ -42,7 +42,7 @@ function get_site_by_geo(latitude, longitude)
     return nil
   end
 
-  local sites = tools.get_config('/lib/gluon/site-selcet/geo.json').features
+  local sites = tools.get_config('/lib/gluon/site-select/geo.json').features
   for _,site in ipairs(sites) do
     if site.geometry and site.geometry.coordinates and shape.PointWithinShape(site.geometry.coordinates, latitude, longitude) then
       return site.properties.site_code
