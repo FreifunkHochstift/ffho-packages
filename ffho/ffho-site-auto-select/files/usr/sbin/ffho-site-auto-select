@@ -2,28 +2,9 @@
 
 local util = require("luci.util")
 local json = require("luci.json")
-local config = require 'gluon.sites'
 local uci = require('luci.model.uci').cursor()
-local site = require 'gluon.site_config'
-
-function is_site_valid(site)
-  for _, tmp in pairs(config) do
-    if tmp.site_code == site then
-      return true
-    end
-  end
-  return false
-end
-
-function set_currentsite(site)
-  if site and is_site_valid(site) then
-    uci:set('currentsite', 'current', 'name', site)
-    uci:save('currentsite')
-    uci:commit('currentsite')
-    return true
-  end
-  return false
-end
+local site_code = require('gluon.site_config').side_code
+local tools = require 'gluon.site_generate'
 
 function neighbours(ifname)
   local info = util.exec("gluon-neighbour-info -d ff02::2:1001 -p 1001 -r nodeinfo -t 2 -i " .. ifname)
@@ -48,7 +29,7 @@ function get_neighbour_site()
     for _, node in pairs(macs) do
       if node["system"] then
         local node_site = node["system"]["site_code"]
-        if node_site and is_site_valid(node_site) then
+        if node_site and tools.validate_site(node_site) then
           return node_site
         end
       end
@@ -59,16 +40,16 @@ function get_neighbour_site()
 end
 
 local currentsite = uci:get('currentsite', 'current', 'name')
-local configured = is_site_valid(currentsite)
+local configured = tools.validate_site(currentsite)
 
 if configured == false then
   currentsite = get_neighbour_site()
-  configured = set_currentsite(currentsite)
+  configured = tools.set_site_code(currentsite)
 end
 
 if configured then
-  os.execute("rm -f /lib/gluon/cron/ffho-site-auto-select >/dev/null 2>&1")
-  if site.site_code ~= currentsite then
+  os.remove("/lib/gluon/cron/ffho-site-auto-select")
+  if site_code ~= currentsite then
     os.execute("/lib/gluon/site-select/site-upgrade >/dev/null 2>&1")
     os.execute("reboot >/dev/null 2>&1")
   end

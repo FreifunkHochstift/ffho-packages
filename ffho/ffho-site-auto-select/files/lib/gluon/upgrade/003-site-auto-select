@@ -1,20 +1,25 @@
 #!/usr/bin/lua
 
-local config = require 'gluon.sites'
 local uci = require('luci.model.uci').cursor()
+local json = require 'luci.json'
+local tools = require 'gluon.site_generate'
+local shape = require 'gluon.pointwithinshape'
 
-function is_site_valid(site)
-  for _, tmp in pairs(config) do
-    if tmp.site_code == site then
-      return true
-    end
+local geo_default_site = "ffho_yho"
+
+function get_config(file)
+  local f = io.open(file)
+  if f then
+    local config = json.decode(f:read('*a'))
+    f:close()
+    return config
   end
-  return false
+  return nil
 end
 
-function set_currentsite(site)
-  if site and is_site_valid(site) then
-    uci:set('currentsite', 'current', 'name', site)
+function set_currentsite(site_code)
+  if site_code and tools.validate_site(site_code) then
+    uci:set('currentsite', 'current', 'name', site_code)
     uci:save('currentsite')
     uci:commit('currentsite')
     return true
@@ -23,13 +28,33 @@ function set_currentsite(site)
 end
 
 function get_site_by_geo(latitude, longitude)
-  return nil
+  if not latitude or not longitude then
+    return nil
+  end
+
+  local sites = tools.get_config('/lib/gluon/site-select/geo.json').features
+  for _,site in ipairs(sites) do
+    if site.geometry and site.geometry.coordinates then
+      local tmp1 = {}
+      for _, val in ipairs(site.geometry.coordinates[1]) do
+        local tmp2 = {}
+        tmp2.x=val[2]
+        tmp2.y=val[1]
+        table.insert(tmp1, tmp2)
+      end
+      if shape.PointWithinShape(tmp1, tonumber(latitude), tonumber(longitude)) then
+        return site.properties.site_code
+      end
+    end
+  end
+
+  return geo_default_site
 end
 
 local currentsite = uci:get('currentsite', 'current', 'name')
-local configured = is_site_valid(currentsite)
+local configured = tools.validate_site(currentsite)
 
-if configured == false then
+if not configured then
   local latitude = uci:get_first('gluon-node-info', 'location', 'latitude')
   local longitude = uci:get_first('gluon-node-info', 'location', 'longitude')
   if latitude and longitude then
@@ -38,7 +63,7 @@ if configured == false then
   end
 end
 
-if configured == false then
+if not configured then
   local minute = math.random(0, 59)
   local f = io.open('/lib/gluon/cron/ffho-site-auto-select', 'w')
   f:write(string.format('%i * * * * /usr/sbin/ffho-site-auto-select\n', minute))

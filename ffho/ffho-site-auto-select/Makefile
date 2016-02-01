@@ -4,6 +4,8 @@ PKG_NAME:=ffho-site-auto-select
 PKG_VERSION:=1
 PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
 
+PFG_BUILD_DEPENDS := lua-cjson/host
+
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
@@ -12,7 +14,7 @@ define Package/ffho-site-auto-select
   SECTION:=ffho
   CATEGORY:=Gluon
   TITLE:=Toolset to autodetect the site.
-  DEPENDS:=+gluon-cron +gluon-neighbour-info +ffho-site-generate
+  DEPENDS:=+gluon-core +gluon-cron +gluon-neighbour-info +ffho-site-generate
   MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
   SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
@@ -36,7 +38,9 @@ define Package/ffho-site-auto-select/preinst
 endef
 
 define Package/ffho-site-auto-select/install
-  $(CP) ./files/* $(1)/
+	$(CP) ./files/* $(1)/
+	$(INSTALL_DIR) $(1)/lib/gluon/site-select
+	lua -e 'print(require("cjson").encode(require("cjson").decode(io.open("$(GLUON_SITEDIR)/extra/geo.json"):read("*a"))))' > $(1)/lib/gluon/site-select/geo.json
 endef
 
 $(eval $(call BuildPackage,ffho-site-auto-select))
