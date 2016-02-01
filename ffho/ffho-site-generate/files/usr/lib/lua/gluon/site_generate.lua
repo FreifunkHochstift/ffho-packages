@@ -17,14 +17,19 @@ function get_config(file)
   return nil
 end
 
-function validate_site(site_code)
+function get_list()
+  local list = {}
   local sites = get_config(sites_json)
-  for _, site in pairs(sites) do
-    if site.site_code == site_code then
-      return true
-    end
+  for index, site in pairs(sites) do
+    list[site.site_code]=index
   end
-  return false
+  return list
+end
+
+local site_list=get_list()
+
+function validate_site(site_code)
+  return site_list[site_code]
 end
 
 function force_site_code(site_code)

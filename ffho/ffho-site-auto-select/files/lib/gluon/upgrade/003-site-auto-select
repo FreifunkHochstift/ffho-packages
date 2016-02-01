@@ -5,7 +5,7 @@ local json = require 'luci.json'
 local tools = require 'gluon.site_generate'
 local shape = require 'gluon.pointwithinshape'
 
-local geo_default_site = "ffho_error"
+local geo_default_site = "ffho_yho"
 
 function get_config(file)
   local f = io.open(file)
@@ -17,18 +17,8 @@ function get_config(file)
   return nil
 end
 
-function is_site_valid(site_code)
-  local sites = get_config('/lib/gluon/site-select/sites.json')
-  for _, site in pairs(sites) do
-    if site.site_code == site_code then
-      return true
-    end
-  end
-  return false
-end
-
 function set_currentsite(site_code)
-  if site_code and is_site_valid(site_code) then
+  if site_code and tools.validate_site(site_code) then
     uci:set('currentsite', 'current', 'name', site_code)
     uci:save('currentsite')
     uci:commit('currentsite')
@@ -62,9 +52,9 @@ function get_site_by_geo(latitude, longitude)
 end
 
 local currentsite = uci:get('currentsite', 'current', 'name')
-local configured = is_site_valid(currentsite)
+local configured = tools.validate_site(currentsite)
 
-if configured == false then
+if not configured then
   local latitude = uci:get_first('gluon-node-info', 'location', 'latitude')
   local longitude = uci:get_first('gluon-node-info', 'location', 'longitude')
   if latitude and longitude then
@@ -73,7 +63,7 @@ if configured == false then
   end
 end
 
-if configured == false then
+if not configured then
   local minute = math.random(0, 59)
   local f = io.open('/usr/lib/micron.d/ffho-site-auto-select', 'w')
   f:write(string.format('%i * * * * /usr/sbin/ffho-site-auto-select\n', minute))
