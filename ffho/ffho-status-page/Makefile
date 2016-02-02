@@ -12,7 +12,7 @@ define Package/ffho-status-page
   SECTION:=ffho
   CATEGORY:=Gluon
   TITLE:=Adds a status page showing information about the node.
-  DEPENDS:=+gluon-core +gluon-neighbour-info +uhttpd
+  DEPENDS:=+gluon-core +uhttpd +gluon-neighbour-info +gluon-announce +libiwinfo-lua +luci-lib-jsonc
 endef
 
 define Package/ffho-status-page/description
