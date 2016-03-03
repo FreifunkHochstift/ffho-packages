@@ -14,6 +14,7 @@ define Package/ffho-autoupdater
   CATEGORY:=Gluon
   DEPENDS:=+gluon-core +libgluonutil +micrond +autoupdater
   TITLE:=Automatically update firmware
+  PROVIDES:=gluon-autoupdater
 endef
 
 define Build/Prepare
