@@ -15,6 +15,7 @@ define Package/ffho-config-mode-mesh-vpn
   CATEGORY:=Gluon
   TITLE:=Toggle mesh-vpn and bandwidth limit
   DEPENDS:=gluon-config-mode-core-virtual +gluon-mesh-vpn-fastd
+  PROVIDES:=gluon-config-mode-mesh-vpn
 endef
 
 define Build/Prepare

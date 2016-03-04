@@ -15,6 +15,7 @@ define Package/ffho-config-mode-geo-location
   CATEGORY:=Gluon
   TITLE:=Set geographic location of a node
   DEPENDS:=gluon-config-mode-core-virtual +gluon-node-info
+  PROVIDES:=gluon-config-mode-geo-location
 endef
 
 define Build/Prepare
