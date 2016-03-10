@@ -3,7 +3,7 @@
 local util = require("luci.util")
 local json = require("luci.json")
 local uci = require('luci.model.uci').cursor()
-local site_code = require('gluon.site_config').side_code
+local site_code = require('gluon.site_config').site_code
 local tools = require 'gluon.site_generate'
 
 function neighbours(ifname)
@@ -42,7 +42,7 @@ end
 local currentsite = uci:get('currentsite', 'current', 'name')
 local configured = tools.validate_site(currentsite)
 
-if configured == false then
+if not configured then
   currentsite = get_neighbour_site()
   configured = tools.set_site_code(currentsite)
 end
