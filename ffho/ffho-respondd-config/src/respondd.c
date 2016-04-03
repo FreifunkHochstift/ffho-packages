@@ -1,5 +1,8 @@
 /*
-  Copyright (c) 2016, Matthias Schiffer <mschiffer@universe-factory.net>
+  Copyright (c) 2016
+  Matthias Schiffer <mschiffer@universe-factory.net>
+  Karsten Böddeker <freifunk@kb-light.de>
+
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
