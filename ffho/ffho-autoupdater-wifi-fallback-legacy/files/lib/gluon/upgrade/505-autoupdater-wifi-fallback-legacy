@@ -1,0 +1,7 @@
+#!/usr/bin/lua
+local uci = require('luci.model.uci').cursor()
+
+if uci:get('autoupdater-wifi-fallback','settings') and uci:get('autoupdater-wifi-fallback','settings','min_uptime_secs') then
+  uci:delete('autoupdater-wifi-fallback','settings')
+  uci:save('autoupdater-wifi-fallback')
+end

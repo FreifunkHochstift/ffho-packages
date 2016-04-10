@@ -2,72 +2,62 @@
 local fs = require('nixio.fs')
 local uci = require('luci.model.uci').cursor()
 local site = require 'gluon.site_config'
-local iwinfo = require 'iwinfo'
-local configname = 'autoupdater-wifi-fallback'
 local util = require 'luci.util'
-local settings = uci:get_all(configname, 'settings')
 local ut = require('autoupdater-wifi-fallback.util')
-local debug = true
+local gluon = require 'gluon.util'
 
--- parse arguments
+local configname = 'autoupdater-wifi-fallback'
 local force = false
+local min_uptime_secs = 3600
+
+local function parse_args()
 local i = 1
-while arg[i] do
-  if arg[i] == '-f' then
-    print("I will do what you want")
-    force = true
-  end
-  i = i+1
-end
+  while arg[i] do
+    if arg[i] == '-f' then
+      force = true
+    elseif arg[i] == '-b' then
+      i=i+1
 
--- preflight checks
-
-if not force then
-  if settings.enabled ~= '1' or uci:get('autoupdater','settings','enabled') ~= '1' then
-    if debug then io.stderr:write('connectivity checks or autoupdater are disabled.\n') end
-    os.exit(0)
-  end
-  
-  if fs.stat("/tmp/run/fastd.mesh_vpn.socket", "type") == "socket" then
-    if debug then io.stderr:write('we have a valid socket for fastd. no fallback required.\n') end
-    os.exit(0)
-  end
-  
-  if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < tonumber(settings.min_uptime_secs) then
-    if debug then io.stderr:write('we just booted. check skipped.\n') end
-    os.exit(0)
-  end
-end
-
-local function check_connectivity()
-  local f = io.open("/sys/kernel/debug/batman_adv/bat0/gateways","r")
-  if f ~= nil then
-    f:close()
-    local wifi = get_wifi_neighbours()
-    if wifi ~= nil then
-      for key, interface in ipairs(wifi) do                                          
-        if os.execute(string.format("batctl ping -t5 -c1 %s > /dev/null 2>&1", interface)) == 0 then
-              return true
-        end
+      if not arg[i] then
+        io.stderr:write("Error parsing command line: expected branch name\n")
+        os.exit(1)
       end
-    end 
-    
-    local list = io.lines("/sys/kernel/debug/batman_adv/bat0/gateways")
-    for line in list do
-      local gateway_mac = line:match("^=?>? +([0-9a-f:]+)")
-      if gateway_mac ~= nil then
-        if os.execute(string.format("batctl ping -t5 -c1 %s > /dev/null 2>&1", gateway_mac)) == 0 then
-          return true
-        end
+
+      branch_name = arg[i]
+    else
+      io.stderr:write("Error parsing command line: unexpected argument '" .. arg[i] .. "'\n")
+      os.exit(1)
+    end
+    i = i+1
+  end
+end
+
+local function preflight_check()
+  if not uci:get_bool(configname,'settings','enabled') then
+    return false
+  end
+  if not uci:get_bool('autoupdater','settings','enabled') then
+    return false
+  end
+  if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < min_uptime_secs then
+    return false
+  end
+
+  return true
+end
+
+local function connectivity_check()
+  for line in io.lines("/sys/kernel/debug/batman_adv/bat0/gateways") do
+    local gateway_mac = line:match("^=?>? +([0-9a-f:]+)")
+    if gateway_mac then
+      if os.execute("batctl ping -t5 -c1 " .. gateway_mac .. " > /dev/null 2>&1") == 0 then
+        return true
       end
     end
   end
-
   
   -- connectivity check against updateserver
-  local updateHosts = get_update_hosts()
-  while #updateHosts > 0 do
-    host = table.remove(updateHosts)
+  for _, host in ipairs(get_update_hosts()) do
     if os.execute("ping -w2 -c1 " .. host .. " > /dev/null 2>&1") == 0 then
       return true
     end
@@ -77,69 +67,60 @@ local function check_connectivity()
 end
 
 local function run_autoupdater()
-  -- TODO:should be called with -f !
   os.execute("/usr/sbin/autoupdater -f")
 end
 
-local function switch_to_fallback_mode(wifiNetwork)
-  print("I will connect to: " .. wifiNetwork)
-  local disabled_radios = {'fallback'}
-  uci:foreach('wireless', 'wifi-iface',
-        function(s)
-          uci:set('wireless', s['.name'], 'disabled', '1')
-        end
+local function switch_to_fallback_mode(wifiNetwork, radio)
+  print("connect to: " .. wifiNetwork .. " on " .. radio)
+  uci:delete_all('wireless', 'wifi-iface')
+  uci:section('wireless', 'wifi-iface', 'fallback',
+    {
+      device = radio,
+      network = 'fallback',
+      mode = 'managed',
+      disabled = 0,
+      macaddr = gluon.generate_mac(3, 10),
+      ifname = 'fallback',
+      encryption = 'none',
+      ssid = wifiNetwork,
+    }
   )
-  
-  uci:set('wireless', 'fallback', 'ssid', wifiNetwork) 
-  uci:set('wireless', 'fallback', 'disabled', 0)
+  uci:set('wireless', radio, 'disabled', 0)
   uci:save('wireless')
 
   io.popen("wifi")
   os.execute("sleep 5")
-  os.execute("iw dev fallback connect -w " .. wifiNetwork)
   os.execute("echo \"2\" > /proc/sys/net/ipv6/conf/fallback/accept_ra")
+  uci:revert('wireless')
   os.execute("sleep 20")
 end
 
-local function revert_to_standard_mode(restart_network)
+local function revert_to_standard_mode()
   print("Going back to standard config")
-  uci:revert('wireless')
-  uci:save('wireless')
-  if restart_network then
-    os.execute("/etc/init.d/network restart")
-    os.execute("sleep 30")
-  end
+  os.execute("/etc/init.d/network restart")
+  os.execute("sleep 30")
 end
 
-if is_in_fallback_mode() then
-    revert_to_standard_mode(false)
-    run_autoupdater()
-    -- if there really is a firmware update, we should not reach this point
-    os.execute("/etc/init.d/network restart")
-    os.exit(0)
-end
+parse_args()
 
-if not check_connectivity() then
+if (force or preflight_check()) and not connectivity_check() then
   local offset = 2 * 3600
-  if fs.stat("/tmp/run/fastd.mesh_vpn.socket", "type") == "socket" then offset = 4 * 3600 end
-  local unreachable_since = settings.unreachable_since
-  if unreachable_since == nil then 
-    uci:set(configname, 'settings', 'unreachable_since', os.time())
-    unreachable_since = os.time()
+  local unreachable_since = os.time()
+  if not uci:get('autoupdater-wifi-fallback', 'settings', 'unreachable_since') then
+    uci:set(configname, 'settings', 'unreachable_since', unreachable_since)
   else
-    uci:set(configname, 'settings', 'last_run', os.time())
+    uci:set(configname, 'settings', 'last_run', unreachable_since)
+    unreachable_since = uci:get(configname, 'settings', 'unreachable_since')
   end
   uci:save(configname)
   
-  if tonumber(unreachable_since) + offset < os.time() or force then
-    wifiNetwork = get_available_wifi_networks()
+  if force or tonumber(unreachable_since) + offset < os.time() then
+    local radio, wifiNetwork = get_available_wifi_networks()
     if wifiNetwork then
-      switch_to_fallback_mode(wifiNetwork)
-
+      switch_to_fallback_mode(wifiNetwork, radio)
       run_autoupdater()
-      
       -- this is only reached if no updated happened
-      revert_to_standard_mode(true)
+      revert_to_standard_mode()
     end
   end
 else

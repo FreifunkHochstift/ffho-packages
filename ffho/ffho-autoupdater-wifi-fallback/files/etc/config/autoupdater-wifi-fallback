@@ -1,3 +1,2 @@
-config autoupdater-wifi-fallback settings
-	option enabled 1
-	option min_uptime_secs 3600
+#config autoupdater-wifi-fallback settings
+#	option enabled 1

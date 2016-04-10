@@ -10,7 +10,7 @@ include $(GLUONDIR)/include/package.mk
 define Package/ffho-autoupdater-wifi-fallback
   SECTION:=admin
   CATEGORY:=Administration
-  DEPENDS:=+wireless-tools +autoupdater
+  DEPENDS:=+iwinfo +wpa-supplicant-mini +gluon-autoupdater
   TITLE:=Implements switching to fallback mode if we are cut off from the mesh
 endef
 
