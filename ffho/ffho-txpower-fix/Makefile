@@ -8,10 +8,12 @@ PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 include $(GLUONDIR)/include/package.mk
 
 define Package/ffho-txpower-fix
-  SECTION:=admin
-  CATEGORY:=Workaround
-  DEPENDS:=+wireless-tools
-  TITLE:=Fixes txpower on some wifi nodes under chaos calmer (gluon 2015.2)
+  SECTION:=ffho
+  CATEGORY:=Workarounds
+  TITLE:=Fixes txpower on some wifi nodes under chaos calmer (gluon 2016.1.x)
+  DEPENDS:=+gluon-core
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-txpower-fix/description

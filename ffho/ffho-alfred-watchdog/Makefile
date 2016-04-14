@@ -10,12 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-alfred-watchdog
   SECTION:=ffho
-  CATEGORY:=workarounds
+  CATEGORY:=Workarounds
   TITLE:=A.L.F.R.E.D. crash watchdog
   DEPENDS:=+busybox
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-alfred-watchdog/description

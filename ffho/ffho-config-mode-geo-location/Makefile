@@ -11,11 +11,13 @@ PKG_CONFIG_DEPENDS += $(GLUON_I18N_CONFIG)
 
 
 define Package/ffho-config-mode-geo-location
-  SECTION:=gluon
+  SECTION:=ffho
   CATEGORY:=Gluon
   TITLE:=Set geographic location of a node
   DEPENDS:=gluon-config-mode-core-virtual +gluon-node-info
   PROVIDES:=gluon-config-mode-geo-location
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

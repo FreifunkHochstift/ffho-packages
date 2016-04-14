@@ -12,9 +12,11 @@ include $(GLUONDIR)/include/package.mk
 define Package/ffho-autoupdater
   SECTION:=ffho
   CATEGORY:=Gluon
-  DEPENDS:=+gluon-core +libgluonutil +micrond +autoupdater
   TITLE:=Automatically update firmware
+  DEPENDS:=+gluon-core +libgluonutil +micrond +autoupdater
   PROVIDES:=gluon-autoupdater
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

@@ -11,11 +11,13 @@ PKG_CONFIG_DEPENDS += $(GLUON_I18N_CONFIG)
 
 
 define Package/ffho-config-mode-mesh-vpn
-  SECTION:=gluon
+  SECTION:=ffho
   CATEGORY:=Gluon
   TITLE:=Toggle mesh-vpn and bandwidth limit
   DEPENDS:=gluon-config-mode-core-virtual +gluon-mesh-vpn-fastd
   PROVIDES:=gluon-config-mode-mesh-vpn
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

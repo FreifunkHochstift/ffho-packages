@@ -10,9 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-wifi-blackout-workaround
   SECTION:=ffho
-  CATEGORY:=workarounds
+  CATEGORY:=Workarounds
   TITLE:=WiFi-Blackout workaround
   DEPENDS:=+gluon-core
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-wifi-blackout-workaround/description

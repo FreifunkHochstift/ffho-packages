@@ -10,12 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-debug
   SECTION:=ffho
-  CATEGORY:=debug
+  CATEGORY:=FFHO
   TITLE:=Debug scripts for Freifunk Hochstift
   DEPENDS:=+gluon-core +ubus +libubox +busybox
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-debug/description

@@ -10,12 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-node-tuning
   SECTION:=ffho
-  CATEGORY:=Gluon
+  CATEGORY:=FFHO
   TITLE:=Freifunk Hochstift Node Tuning-Settings
   DEPENDS:=+gluon-core +busybox
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-node-tuning/description
@@ -36,9 +35,6 @@ define Build/Configure
 endef
 
 define Build/Compile
-endef
-
-define Package/ffho-node-tuning/postinst
 endef
 
 define Package/ffho-node-tuning/install

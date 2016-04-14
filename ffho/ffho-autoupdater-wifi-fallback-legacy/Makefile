@@ -10,12 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-autoupdater-wifi-fallback-legacy
   SECTION:=ffho
-  CATEGORY:=Gluon
+  CATEGORY:=Workarounds
   TITLE:=Toolset of scripts for migration of ffho-autoupdater-wifi-fallback.
   DEPENDS:=+ffho-autoupdater-wifi-fallback
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-autoupdater-wifi-fallback-legacy/description
@@ -31,9 +30,6 @@ define Build/Configure
 endef
 
 define Build/Compile
-endef
-
-define Package/ffho-autoupdater-wifi-fallback-legacy/preinst
 endef
 
 define Package/ffho-autoupdater-wifi-fallback-legacy/install

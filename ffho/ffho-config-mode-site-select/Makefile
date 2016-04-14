@@ -11,10 +11,12 @@ include $(INCLUDE_DIR)/package.mk
 PKG_CONFIG_DEPENDS += $(GLUON_I18N_CONFIG)
 
 define Package/ffho-config-mode-site-select
-  SECTION:=gluon
-  CATEGORY:=Gluon
+  SECTION:=ffho
+  CATEGORY:=Site-select
   TITLE:=UI for changing the node-config
   DEPENDS:=+gluon-config-mode-core-virtual +ffho-site-generate
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

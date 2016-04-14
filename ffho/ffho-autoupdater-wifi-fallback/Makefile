@@ -1,17 +1,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ffho-autoupdater-wifi-fallback
-PKG_VERSION:=1
+PKG_VERSION:=2
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(GLUONDIR)/include/package.mk
 
 define Package/ffho-autoupdater-wifi-fallback
-  SECTION:=admin
-  CATEGORY:=Administration
-  DEPENDS:=+iwinfo +wpa-supplicant-mini +gluon-autoupdater
+  SECTION:=ffho
+  CATEGORY:=FFHO
   TITLE:=Implements switching to fallback mode if we are cut off from the mesh
+  DEPENDS:=+iwinfo +wpa-supplicant-mini +gluon-autoupdater
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

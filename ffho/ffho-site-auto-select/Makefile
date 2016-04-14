@@ -12,12 +12,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-site-auto-select
   SECTION:=ffho
-  CATEGORY:=Gluon
+  CATEGORY:=Site-select
   TITLE:=Toolset to autodetect the site.
   DEPENDS:=+gluon-core +micrond +gluon-neighbour-info +ffho-site-generate
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-site-auto-select/description
@@ -32,9 +31,6 @@ define Build/Configure
 endef
 
 define Build/Compile
-endef
-
-define Package/ffho-site-auto-select/preinst
 endef
 
 define Package/ffho-site-auto-select/install

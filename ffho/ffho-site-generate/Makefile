@@ -12,12 +12,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-site-generate
   SECTION:=ffho
-  CATEGORY:=Gluon
+  CATEGORY:=Site-select
   TITLE:=Scripts for generating a new site.json
   DEPENDS:=+gluon-core +luci-lib-json
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-site-generate/description
@@ -31,9 +30,6 @@ define Build/Configure
 endef
 
 define Build/Compile
-endef
-
-define Package/ffho-site-generate/preinst
 endef
 
 define Package/ffho-site-generate/install

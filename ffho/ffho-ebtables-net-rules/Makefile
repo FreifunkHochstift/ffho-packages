@@ -10,12 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-ebtables-net-rules
   SECTION:=ffho
-  CATEGORY:=Gluon
+  CATEGORY:=FFHO
   TITLE:=FFHO net-specific ebtables rules to filter unreasonable L2 traffic.
   DEPENDS:=+gluon-core +gluon-ebtables
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@paderborn.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-ebtables-net-rules/description

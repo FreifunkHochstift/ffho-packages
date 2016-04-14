@@ -10,12 +10,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/ffho-banner
   SECTION:=ffho
-  CATEGORY:=Customization
+  CATEGORY:=FFHO
   TITLE:=Banner file replacement
   DEPENDS:=+gluon-core +busybox
-  MAINTAINER:=Freifunk Hochstift <maschinenraum@hochstift.freifunk.net>
+  MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
-  SOURCE:=git@git.c3pb.de:freifunk-pb/ffho-packages.git
 endef
 
 define Package/ffho-banner/description
