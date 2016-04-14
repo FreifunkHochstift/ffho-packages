@@ -1,5 +1,0 @@
-#!/bin/sh
-[ "$(cat /tmp/sysinfo/model)" == "TP-Link TL-WR841N/ND v10" ] && \
-	uci set autoupdater.settings.branch="stable" && \
-	uci set autoupdater.settings.enabled=1
-exit 0
