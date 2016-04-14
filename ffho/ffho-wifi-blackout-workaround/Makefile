@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ffho-wifi-blackout-workaround
-PKG_VERSION:=1
+PKG_VERSION:=2
 PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
@@ -12,7 +12,7 @@ define Package/ffho-wifi-blackout-workaround
   SECTION:=ffho
   CATEGORY:=workarounds
   TITLE:=WiFi-Blackout workaround
-  DEPENDS:=+busybox
+  DEPENDS:=+gluon-core
 endef
 
 define Package/ffho-wifi-blackout-workaround/description
