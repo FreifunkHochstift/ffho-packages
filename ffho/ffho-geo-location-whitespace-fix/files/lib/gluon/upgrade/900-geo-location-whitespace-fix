@@ -17,4 +17,5 @@ if sname then
     uci:set('gluon-node-info', sname, 'altitude', altitude:trim())
   end
   uci:save('gluon-node-info')
+  uci:commit('gluon-node-info')
 end
