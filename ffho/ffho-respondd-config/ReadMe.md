@@ -7,5 +7,5 @@ to other values.
 site.conf
 ---------
 
-site_name
-    - The name of your community
+**site_name**
+- The name of your community
