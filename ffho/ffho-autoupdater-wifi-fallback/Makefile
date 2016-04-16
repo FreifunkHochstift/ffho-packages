@@ -2,8 +2,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ffho-autoupdater-wifi-fallback
 PKG_VERSION:=2
+PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
+PKG_BUILD_DEPENDS := respondd
 
 include $(GLUONDIR)/include/package.mk
 
@@ -18,6 +20,7 @@ endef
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
 define Build/Configure
@@ -28,6 +31,9 @@ endef
 
 define Package/ffho-autoupdater-wifi-fallback/install
 	$(CP) ./files/* $(1)/
+
+	$(INSTALL_DIR) $(1)/lib/gluon/respondd
+	$(CP) $(PKG_BUILD_DIR)/respondd.so $(1)/lib/gluon/respondd/autoupdater-wifi-fallback.so
 endef
 
 $(eval $(call BuildPackage,ffho-autoupdater-wifi-fallback))
