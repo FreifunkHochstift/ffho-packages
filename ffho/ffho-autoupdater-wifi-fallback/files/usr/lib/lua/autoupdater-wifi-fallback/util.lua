@@ -27,15 +27,13 @@ function get_available_wifi_networks()
   return false
 end
 
-function get_update_hosts()
+function get_update_hosts(branch)
   local hosts = {}
-  local branch = uci:get('autoupdater', 'settings', 'branch')
   local mirrors = uci:get_list('autoupdater', branch, 'mirror')
 
-  while #mirrors > 0 do
-    local m = table.remove(mirrors)
-    mirror = m:match("://%[?([a-zA-Z0-9\:\.]+)%]?/")
-    table.insert(hosts, 1, mirror)
+  for _, mirror in ipairs(mirrors) do
+    local host = mirror:match("://%[?([a-zA-Z0-9\:\.]+)%]?/")
+    table.insert(hosts, 1, host)
   end
   return hosts
 end

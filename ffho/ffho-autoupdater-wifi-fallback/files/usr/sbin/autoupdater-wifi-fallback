@@ -9,6 +9,7 @@ local gluon = require 'gluon.util'
 local configname = 'autoupdater-wifi-fallback'
 local force = false
 local min_uptime_secs = 3600
+local branch_name = uci:get('autoupdater','settings','branch')
 
 local function parse_args()
 local i = 1
@@ -57,7 +58,7 @@ local function connectivity_check()
   end
   
   -- connectivity check against updateserver
-  for _, host in ipairs(get_update_hosts()) do
+  for _, host in ipairs(get_update_hosts(branch_name)) do
     if os.execute("ping -w2 -c1 " .. host .. " > /dev/null 2>&1") == 0 then
       return true
     end
@@ -67,7 +68,7 @@ local function connectivity_check()
 end
 
 local function run_autoupdater()
-  os.execute("/usr/sbin/autoupdater -f")
+  os.execute("/usr/sbin/autoupdater -f -b " .. branch_name)
 end
 
 local function switch_to_fallback_mode(wifiNetwork, radio)
@@ -102,6 +103,11 @@ local function revert_to_standard_mode()
 end
 
 parse_args()
+
+if not uci:get('autoupdater', branch_name) then
+  io.stderr:write("Can't find configuration for branch '" .. branch_name .. "'\n")
+  os.exit(1)
+end
 
 if (force or preflight_check()) and not connectivity_check() then
   local offset = 2 * 3600
