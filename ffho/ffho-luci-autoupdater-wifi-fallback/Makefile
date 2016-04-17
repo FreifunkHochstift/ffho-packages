@@ -31,7 +31,7 @@ define Build/Compile
 	$(call GluonBuildI18N,ffho-luci-autoupdater-wifi-fallback,i18n)
 endef
 
-define Package/gluon-luci-autoupdater/install
+define Package/ffho-luci-autoupdater-wifi-fallback/install
 	$(CP) ./files/* $(1)/
 	$(call GluonInstallI18N,ffho-luci-autoupdater-wifi-fallback,$(1))
 endef

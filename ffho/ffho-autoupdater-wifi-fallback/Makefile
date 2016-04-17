@@ -13,7 +13,7 @@ define Package/ffho-autoupdater-wifi-fallback
   SECTION:=ffho
   CATEGORY:=FFHO
   TITLE:=Implements switching to fallback mode if we are cut off from the mesh
-  DEPENDS:=+iwinfo +wpa-supplicant-mini +gluon-autoupdater
+  DEPENDS:=+gluon-autoupdater +libiwinfo-lua +wpa-supplicant-mini
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
@@ -21,12 +21,6 @@ endef
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
 endef
 
 define Package/ffho-autoupdater-wifi-fallback/install

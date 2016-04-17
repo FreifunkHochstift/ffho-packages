@@ -28,7 +28,6 @@
 #include <respondd.h>
 
 #include <json-c/json.h>
-#include <libgluonutil.h>
 
 #include <uci.h>
 
