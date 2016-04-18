@@ -13,7 +13,7 @@ define Package/ffho-autoupdater-wifi-fallback
   SECTION:=ffho
   CATEGORY:=FFHO
   TITLE:=Implements switching to fallback mode if we are cut off from the mesh
-  DEPENDS:=+gluon-autoupdater +libiwinfo-lua +wpa-supplicant-mini
+  DEPENDS:=+gluon-autoupdater +libiwinfo-lua +iw
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
