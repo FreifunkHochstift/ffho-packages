@@ -1,1 +1,20 @@
-/tmp/wpa-supplicant-fake
+#!/usr/bin/lua
+local uci = require('luci.model.uci').cursor()
+
+local ifnames = {}
+uci:foreach('wireless', 'wifi-iface',
+  function(s)
+    table.insert(ifnames, s['.name'])
+  end
+)
+
+for _, ifname in ipairs(ifnames) do
+  local iface = uci:get_all('wireless', ifname)
+  if not uci:get_bool('wireless', ifname, 'disabled') and iface.mode == 'sta' and iface.ifname and iface.device and iface.ssid then
+    local command = 'iw dev ' .. iface.ifname .. ' connect -w ' .. iface.ssid
+    if iface.bssid then
+      command = command .. ' ' .. iface.bssid
+    end
+    os.execute(command)
+  end
+end

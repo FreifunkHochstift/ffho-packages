@@ -48,13 +48,17 @@ local function preflight_check()
 end
 
 local function connectivity_check()
-  for line in io.lines("/sys/kernel/debug/batman_adv/bat0/gateways") do
-    local gateway_mac = line:match("^=?>? +([0-9a-f:]+)")
-    if gateway_mac then
-      if os.execute("batctl ping -t5 -c1 " .. gateway_mac .. " > /dev/null 2>&1") == 0 then
-        return true
+  local f = io.open('/sys/kernel/debug/batman_adv/bat0/gateways', 'r')
+  if f then
+    for line in f:lines() do
+      local gateway_mac = line:match("^=?>? +([0-9a-f:]+)")
+      if gateway_mac then
+        if os.execute("batctl ping -t5 -c1 " .. gateway_mac .. " > /dev/null 2>&1") == 0 then
+          return true
+        end
       end
     end
+    f:close()
   end
   
   -- connectivity check against updateserver
@@ -73,9 +77,8 @@ local function run_autoupdater()
   os.execute("/usr/sbin/autoupdater -f -b " .. branch_name)
 end
 
-local function switch_to_fallback_mode(ssid, radio)
-  print("connect to: " .. ssid .. " on " .. radio)
-  io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "going to fallback mode"')
+local function switch_to_fallback_mode(radio, ssid, bssid)
+  io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "connect to '  .. radio .. ' ' .. ssid .. ' ' .. bssid .. '"')
   uci:delete_all('wireless', 'wifi-iface')
   uci:section('wireless', 'wifi-iface', 'fallback',
     {
@@ -84,6 +87,8 @@ local function switch_to_fallback_mode(ssid, radio)
       mode = 'sta',
       disabled = 0,
       macaddr = gluon.generate_mac(3, 10),
+      bssid = bssid,
+      ssid = ssid,
       ifname = 'fallback',
       encryption = 'none',
     }
@@ -91,20 +96,13 @@ local function switch_to_fallback_mode(ssid, radio)
   uci:set('wireless', radio, 'disabled', 0)
   uci:save('wireless')
 
-  local f = io.open('/tmp/wpa-supplicant-fake', 'w')
-  f:write('#!/bin/sh\niw dev fallback connect -w ' .. ssid)
-  f:close()
-  fs.chmod('/tmp/wpa-supplicant-fake', 755)
-
-  io.popen("wifi")
+  os.execute("wifi")
   os.execute("sleep 5")
-  os.execute("echo \"2\" > /proc/sys/net/ipv6/conf/fallback/accept_ra")
   uci:revert('wireless')
   os.execute("sleep 20")
 end
 
 local function revert_to_standard_mode()
-  print("Going back to standard config")
   io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "going back to standard mode"')
   os.execute("/etc/init.d/network restart")
   os.execute("sleep 30")
@@ -129,9 +127,10 @@ if (force or preflight_check()) and not connectivity_check() then
   uci:save(configname)
   
   if force or tonumber(unreachable_since) + offset < os.time() then
-    local radio, wifiNetwork = get_available_wifi_networks()
-    if wifiNetwork then
-      switch_to_fallback_mode(wifiNetwork, radio)
+    io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "going to fallback mode"')
+    local radio, ssid, bssid = get_available_wifi_networks()
+    if radio and ssid and bssid then
+      switch_to_fallback_mode(radio, ssid, bssid)
       run_autoupdater()
       -- this is only reached if no updated happened
       revert_to_standard_mode()

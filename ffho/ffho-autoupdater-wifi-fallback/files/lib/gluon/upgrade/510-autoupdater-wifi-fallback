@@ -21,7 +21,9 @@ uci:delete('wireless', 'fallback')
 uci:delete('network','fallback')
 uci:section('network', 'interface', 'fallback',
   {
-    ifname = 'fallback',
+    proto = 'dhcpv6',
+    peerdns = 1,
+    sourcefilter = 0,
   }
 )
 
