@@ -1,4 +1,0 @@
-ffho-alfred-watchdog
-====================
-
-*OBSOLETE*
