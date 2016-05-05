@@ -31,10 +31,6 @@ uci:save('autoupdater-wifi-fallback')
 uci:save('network')
 uci:save('wireless')
 
-uci:commit('autoupdater-wifi-fallback')
-uci:commit('network')
-uci:commit('wireless')
-
 local minute = tonumber(fs.readfile('/usr/lib/micron.d/autoupdater'):match('^([0-9][0-9]?)%s'))
 minute = (minute + 10) % 60
 

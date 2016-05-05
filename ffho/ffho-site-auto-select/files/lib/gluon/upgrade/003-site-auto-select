@@ -21,7 +21,6 @@ function set_currentsite(site_code)
   if site_code and tools.validate_site(site_code) then
     uci:set('currentsite', 'current', 'name', site_code)
     uci:save('currentsite')
-    uci:commit('currentsite')
     return true
   end
   return false

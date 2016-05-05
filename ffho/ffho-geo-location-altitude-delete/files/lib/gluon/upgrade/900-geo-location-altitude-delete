@@ -7,5 +7,4 @@ local altitude = uci:get("gluon-node-info", sname, "altitude")
 if altitude ~= nil then
   uci:delete("gluon-node-info", sname, "altitude")
   uci:save("gluon-node-info")
-  uci:commit("gluon-node-info")
 end
