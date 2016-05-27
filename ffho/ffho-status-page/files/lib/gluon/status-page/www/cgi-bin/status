@@ -41,14 +41,19 @@ for k, v in data:gmatch('([^\n:]+):%s*(%d+) kB') do
 end
 
 function location()
+  local text = 'none'
   local locationid = uci:get_first('gluon-node-info', 'location')
   if locationid then
     local location = uci:get_all('gluon-node-info', locationid)
     if uci:get_bool('gluon-node-info', locationid, 'share_location') and location.latitude and location.longitude then
-      return "<a href=https://map.hochstift.freifunk.net/#!v:m;n:" .. nodeid .. ">" .. location.latitude .. ", " .. location.longitude .. "</a>"
+      text = location.latitude .. ', ' .. location.longitude
     end
   end
-  return '<a href=https://map.hochstift.freifunk.net/#!v:m;n:' .. nodeid .. '>none</a>'
+
+  if (site.status_page or {}).location_link then
+    text = '<a href=' .. site.status_page.location_link .. nodeid .. '>' .. text .. '</a>'
+  end
+  return text
 end
 
 function escape_html(s)
@@ -99,7 +104,7 @@ io.write("<body>")
 io.write("<h1>" .. escape_html(hostname) .. "</h1>")
 io.write("<pre>")
 
-io.write("Region:      " .. escape_html(site.site_name) .. "\n")
+io.write("Community:   " .. escape_html(site.site_name) .. "\n")
 io.write("Model:       " .. escape_html(model) .. "\n")
 io.write("Firmware:    " .. escape_html(release) .. "\n")
 io.write("MAC:         " .. escape_html(primary_mac) .. "\n")
