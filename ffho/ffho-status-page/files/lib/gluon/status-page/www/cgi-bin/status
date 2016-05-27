@@ -16,14 +16,6 @@ local model = platform_info.get_model()
 local release = util.trim(fs.readfile("/lib/gluon/release") or "")
 local primary_mac = require('gluon.sysconfig').primary_mac
 local nodeid = require('gluon.util').node_id()
-local latitude = uci:get_first('gluon-node-info', 'location', 'latitude')
-local longitude = uci:get_first('gluon-node-info', 'location', 'longitude')
-local location = ""
-if latitude and longitude then
-  location = "<a href=https://map.hochstift.freifunk.net/#!v:m;n:" .. nodeid .. ">" .. latitude .. ", " .. longitude .. "</a>"
-else
-  location = "<a href=https://map.hochstift.freifunk.net/#!v:m;n:" .. nodeid .. ">none</a>"
-end
 
 local contact = uci:get_first('gluon-node-info', 'owner', 'contact', '')
 if contact == '' then
@@ -46,6 +38,17 @@ local data = io.open('/proc/meminfo'):read('*a')
 local fields = {}
 for k, v in data:gmatch('([^\n:]+):%s*(%d+) kB') do
         fields[k] = tonumber(v)
+end
+
+function location()
+  local locationid = uci:get_first('gluon-node-info', 'location')
+  if locationid then
+    local location = uci:get_all('gluon-node-info', locationid)
+    if uci:get_bool('gluon-node-info', locationid, 'share_location') and location.latitude and location.longitude then
+      return "<a href=https://map.hochstift.freifunk.net/#!v:m;n:" .. nodeid .. ">" .. location.latitude .. ", " .. location.longitude .. "</a>"
+    end
+  end
+  return '<a href=https://map.hochstift.freifunk.net/#!v:m;n:' .. nodeid .. '>none</a>'
 end
 
 function escape_html(s)
@@ -103,7 +106,7 @@ io.write("MAC:         " .. escape_html(primary_mac) .. "\n")
 io.write("Contact:     " .. escape_html(contact) .. "\n")
 io.write("Uptime:      " .. escape_html(util.trim(sys.exec("uptime | sed 's/^ \+//'"))) .. "\n")
 io.write("Autoupdater: " .. escape_html(autoupdater) .. "\n")
-io.write("Location:    " .. location .. "\n")
+io.write("Location:    " .. location() .. "\n")
 io.write("IPs:         " .. escape_html(util.trim(addresses)) .. "\n")
 io.write("Memory:      " .. string.format("%.1f %% used, %.1f %% free",(fields.MemTotal-fields.MemFree)/fields.MemTotal*100,fields.MemFree/fields.MemTotal*100) .. "\n")
 io.write("</pre>")
