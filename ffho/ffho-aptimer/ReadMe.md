@@ -1,25 +1,33 @@
 ffho-aptimer
 ============
 
-Timer for the client wifi
+Timer for the client wifi with three modes (daily, weekly, monthly)
 
 /etc/config/aptimer
 -------------------
+
+**aptimer.settings.enabled:**
+- `0` disables the aptimer (default)
+- `1` enables the aptimer
+
+**aptimer.settings.type:**
+- `day`, $day = all
+- `week`, $day = [Mon|Tue|Wed|Thu|Fri|Sat|Sun]
+- `month`, $day = [01-31]
+
+**aptimer.$day.on:**
+- List of time to enable wireless
+
+**aptimer.$day.off:**
+- List of time to disable wireless
+
+### example
 ```
 config aptimer 'settings'
-        option enabled '1'
-        option type '$type'
+	option enabled '1'
+	option type 'week'
 
-config $type '$day'
-        list on '06:00'
-        list off '23:00'
+config week 'Sun'
+	list on '06:00'
+	list off '23:00'
 ```
-
-**$type=day**
-- $day=all
-
-**$type=week**
-- $day=[Mon|Tue|Wed|Thu|Fri|Sat|Sun]
-
-**$type=month**
-- $day=[01-31]

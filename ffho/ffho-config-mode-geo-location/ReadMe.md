@@ -8,7 +8,18 @@ corresponding field can be disabled.
 site.conf
 ---------
 
-**config_mode.geo_location.show_altitude : optional**
-- ``true`` enables the altitude field
-- ``false`` disables the altitude field if altitude has not yet been set
-- defaults to ``true``
+**config_mode.geo_location.show_altitude: optional**
+- `true` enables the altitude field (default)
+- `false` disables the altitude field if altitude has not yet been set
+
+### example
+```lua
+{
+  config_mode = {
+    geo_location = {
+      show_altitude = false,
+    },
+  },
+  ...
+},
+```

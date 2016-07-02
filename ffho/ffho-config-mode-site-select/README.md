@@ -1,19 +1,26 @@
 ffho-config-mode-site-select
-======================
+============================
 
-This Repository contains a Gluon package to choose between different sites after flashing the image. <br>
-This does not apply to the site.mk!
+This Package provides a drop-down list for the config mode, to select the site/region
+the node will be placed in. If the selection has changed the upgrade scripts in
+`/lib/gluon/upgrade/` are triggered.
 
-This is a modified Version of gluon-config-mode-site-select
+site/extra/sites.conf
+---------------------
 
-Usage
------
-Create a file called sites.conf in $gluondir/site/extra/.
-This file should include a lua-table with the following informations about the different sites
-* site_name
-* site_code
-* ssid
+**site_select.hidden: optional**
+- `0`, show this site in drop-down list (default)
+- `1`, hide this site within config mode
 
-<br>
-Das ganze sieht dann so aus: <br>
-![](http://labor19.net/Hendrik/preview1.png)
+### example
+```lua
+{
+  {
+    site_select: = {
+      hidden = 1,
+    },
+    ...
+  },
+  ...
+},
+```
