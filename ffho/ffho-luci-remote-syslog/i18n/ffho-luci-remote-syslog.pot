@@ -1,0 +1,8 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "If you want to use a remote syslog server, you can set it up here."
+msgstr ""
+
+msgid "Remote Syslog"
+msgstr ""
