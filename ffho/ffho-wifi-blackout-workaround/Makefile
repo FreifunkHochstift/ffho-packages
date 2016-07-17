@@ -18,7 +18,7 @@ define Package/ffho-wifi-blackout-workaround
 endef
 
 define Package/ffho-wifi-blackout-workaround/description
-	Disables ANI when the "stable" firmware branch is used.
+	Disables the ANI feature.
 endef
 
 define Build/Prepare
