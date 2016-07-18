@@ -1,0 +1,74 @@
+#!/usr/bin/lua
+local fs = require('nixio.fs')
+local uci = require('luci.model.uci').cursor()
+local iwinfo = require "iwinfo"
+local site = require 'gluon.site_config'
+
+local fileOk="/tmp/ath9k-ok"
+local fileReset="/tmp/ath9k-reset"
+
+function time2file (file)
+  local f = io.open(file, 'w')
+  f:write(string.format('%i', os.time()))
+  f:close()
+end
+
+function devOk (iface)
+  local data = uci:get_all('wireless', iface)
+  if data.disabled then
+    return null
+  end
+  local radio = uci:get_all('wireless', data.radio)
+  if not radio.hwmode == '11g' or radio.disabled then
+    return null
+  end
+  local wifitype = iwinfo.type(data.radio)
+  local iw = iwinfo[wifitype]
+  if iw.assoclist(iface) then
+    return true
+  end
+  return false
+end
+
+function check_wifi()
+  local ifaces = {}
+  uci:foreach('wireless', 'wifi-iface',
+    function(s)
+      table.insert(ifaces, s['.name'])
+    end
+  )
+  local blackout = false
+  for _, iface in ipairs(ifaces) do
+    local tmp = devOk(iface)
+    if tmp then
+      return true
+    elseif tmp == false then
+      blackout = true
+    end
+  end
+  return not blackout
+end
+
+if not fs.readfile(fileReset) then
+  time2file(fileReset)
+end
+
+if check_wifi() or not fs.readfile(fileOk) then 
+  time2file(fileOk)
+  os.exit(0)                             
+end
+
+local blackout_wait_secs = site.ath9k-workaround.blackout_wait *60
+local reset_wait_secs = site.ath9k-workaround.reset_wait *60
+
+if os.difftime(os.time(), tonumber(fs.readfile(fileReset))) <= reset_wait_secs then
+  os.exit(0)
+end
+
+if os.difftime(os.time(), tonumber(fs.readfile(fileOk))) <= blackout_wait_secs then
+  os.exit(0)
+end
+
+io.popen('logger -s -t ath9k-blackout-workaround -p local0.info "blackout detected, resart wifi"')
+time2file(fileReset)
+os.execute("wifi")
