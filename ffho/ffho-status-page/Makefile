@@ -12,7 +12,7 @@ define Package/ffho-status-page
   SECTION:=ffho
   CATEGORY:=Gluon
   TITLE:=Adds a status page showing information about the node.
-  DEPENDS:=+gluon-core +uhttpd +gluon-neighbour-info +gluon-respondd +libiwinfo-lua +luci-lib-jsonc
+  DEPENDS:=+gluon-core +uhttpd +gluon-status-page-api +libiwinfo-lua +luci-lib-jsonc
   PROVIDES:=gluon-status-page
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
