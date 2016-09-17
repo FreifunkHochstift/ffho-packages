@@ -1,4 +1,4 @@
-#config aptimer 'settings'
+#config ap-timer 'settings'
 #	option enabled '1'
 #	option type 'day'
 #

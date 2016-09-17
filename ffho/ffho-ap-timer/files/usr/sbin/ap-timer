@@ -17,7 +17,7 @@ function compare(list, value)
 end
 
 function getDay()
-  local type = uci:get('aptimer','settings','type')
+  local type = uci:get('ap-timer','settings','type')
   if type == 'day' then return 'all'
   elseif type == 'week' then return os.date('%a', timestamp)
   elseif type == 'month' then return os.date('%d', timestamp)
@@ -41,12 +41,12 @@ function apSet(value)
   end
 end
 
-if uci:get_bool('aptimer','settings','enabled') then
+if uci:get_bool('ap-timer','settings','enabled') then
   local day = getDay()
   local current = os.date("%H:%M", timestamp)
 
-  local off = compare(uci:get_list('aptimer', day, 'off'), current)
-  local on = compare(uci:get_list('aptimer', day, 'on'), current)
+  local off = compare(uci:get_list('ap-timer', day, 'off'), current)
+  local on = compare(uci:get_list('ap-timer', day, 'on'), current)
 
   if on and not off then
     apSet(true)

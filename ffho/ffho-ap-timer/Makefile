@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=ffho-aptimer
+PKG_NAME:=ffho-ap-timer
 PKG_VERSION:=1
 PKG_RELEASE:=$(GLUON_VERSION).$(GLUON_SITE_CODE)-$(GLUON_RELEASE).$(GLUON_CONFIG_VERSION)
 
@@ -8,7 +8,7 @@ PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/ffho-aptimer
+define Package/ffho-ap-timer
   SECTION:=ffho
   CATEGORY:=FFHO
   TITLE:=Timer for the client wifi
@@ -17,7 +17,7 @@ define Package/ffho-aptimer
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
-define Package/ffho-aptimer/description
+define Package/ffho-ap-timer/description
 	Timer for the client wifi
 endef
 
@@ -31,8 +31,8 @@ endef
 define Build/Compile
 endef
 
-define Package/ffho-aptimer/install
+define Package/ffho-ap-timer/install
   $(CP) ./files/* $(1)/
 endef
 
-$(eval $(call BuildPackage,ffho-aptimer))
+$(eval $(call BuildPackage,ffho-ap-timer))
