@@ -14,6 +14,7 @@ local uci = require('luci.model.uci').cursor()
 local hostname = sys.hostname()
 local model = platform_info.get_model()
 local release = util.trim(fs.readfile("/lib/gluon/release") or "")
+local version = util.trim(fs.readfile("/lib/gluon/gluon-version") or "")
 local primary_mac = require('gluon.sysconfig').primary_mac
 local nodeid = require('gluon.util').node_id()
 
@@ -40,7 +41,7 @@ for k, v in data:gmatch('([^\n:]+):%s*(%d+) kB') do
         fields[k] = tonumber(v)
 end
 
-function location()
+local function location()
   local text = 'none'
   local locationid = uci:get_first('gluon-node-info', 'location')
   if locationid then
@@ -56,11 +57,11 @@ function location()
   return text
 end
 
-function escape_html(s)
+local function escape_html(s)
   return (s:gsub('&', '&amp;'):gsub('<', '&lt;'):gsub('>', '&gt;'):gsub('"', '&quot;'))
 end
 
-function neighbours(ifname)
+local function neighbours(ifname)
   local info = util.exec("gluon-neighbour-info -d ff02::2:1001 -p 1001 -r nodeinfo -t 3 -i " .. ifname)
   local macs = {}
   for _, line in ipairs(util.split(info)) do
@@ -91,6 +92,16 @@ function neighbours(ifname)
   return macs
 end
 
+local function ip_proto(address)
+  if address:match("%.") then
+    return "IPv4"
+  end
+  if address:match(":") then
+    return "IPv6"
+  end
+  return "???"
+end
+
 io.write("Content-type: text/html\n\n")
 io.write("<!DOCTYPE html>\n")
 io.write("<html>")
@@ -106,7 +117,7 @@ io.write("<pre>")
 
 io.write("Community:   " .. escape_html(site.site_name) .. "\n")
 io.write("Model:       " .. escape_html(model) .. "\n")
-io.write("Firmware:    " .. escape_html(release) .. "\n")
+io.write("Firmware:    " .. escape_html(release) .. " / " .. escape_html(version) .. "\n")
 io.write("MAC:         " .. escape_html(primary_mac) .. "\n")
 io.write("Contact:     " .. escape_html(contact) .. "\n")
 io.write("Uptime:      " .. escape_html(util.trim(sys.exec("uptime | sed 's/^ \+//'"))) .. "\n")
@@ -188,7 +199,7 @@ if stat then
     io.write(string.format("%s: ", escape_html(peer.name)))
 
     if peer.connection then
-      io.write(string.format("connected for %.3f seconds\n", peer.connection.established/1000))
+      io.write(string.format("connected for %.3f seconds via %s\n", peer.connection.established/1000, ip_proto(peer.address)))
     else
       io.write("not connected\n")
     end
