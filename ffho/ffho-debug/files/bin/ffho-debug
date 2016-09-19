@@ -4,10 +4,71 @@ debugdata = ""
 ATH9K_DEBUGFS_DIR="/sys/kernel/debug/ieee80211/phy0/ath9k"
 PATH_DBG_REPORT='/tmp/debug-report.txt'
 
-local nixio = require('nixio'), require('nixio.util'), require('nixio.fs')
+local nixio = require('nixio'), require('nixio.util')
+local util = require("luci.util")
+local fs = require("nixio.fs")
+local ltn12 = require 'luci.ltn12'
+local sys = require("luci.sys")
+local json = require("luci.jsonc")
+local platform_info = require("platform_info")
+local site = require 'gluon.site_config'
+local ip = require 'luci.ip'
+local uci = require('luci.model.uci').cursor()
+
+-- some usefull functions
+local hostname = sys.hostname()
+local model = platform_info.get_model()
+local release = util.trim(fs.readfile("/lib/gluon/release") or "")
+local version = util.trim(fs.readfile("/lib/gluon/gluon-version") or "")
+local primary_mac = require('gluon.sysconfig').primary_mac
+
+local contact = uci:get_first('gluon-node-info', 'owner', 'contact', '')
+if contact == '' then
+	contact = "none"
+end
+local autoupdater = uci:get('autoupdater', 'settings', 'branch')
+if uci:get_bool('autoupdater', 'settings', 'enabled') == false then
+	autoupdater = "disabled (" .. autoupdater .. ")"
+end
+
+local addresses = ""
+for line in io.lines('/proc/net/if_inet6') do
+	local matches = { line:match('^' .. string.rep('(%x%x%x%x)', 8) .. string.rep(' %x%x', 4) .. '%s+([^%s]+)$') }
+	if matches[9] == 'br-client' then
+		addresses = addresses .. "             " .. ip.IPv6(string.format('%s:%s:%s:%s:%s:%s:%s:%s', unpack(matches))):string():lower() .. "\n"
+	end
+end
+
+local data = io.open('/proc/meminfo'):read('*a')
+local fields = {}
+for k, v in data:gmatch('([^\n:]+):%s*(%d+) kB') do
+	fields[k] = tonumber(v)
+end
+
+local function location()
+	local text = 'none'
+	local locationid = uci:get_first('gluon-node-info', 'location')
+	if locationid then
+		local location = uci:get_all('gluon-node-info', locationid)
+		if uci:get_bool('gluon-node-info', locationid, 'share_location') and location.latitude and location.longitude then
+			text = location.latitude .. ', ' .. location.longitude
+		end
+	end
+	return text
+end
+
+local function ip_proto(address)
+	if address:match("%.") then
+		return "IPv4"
+	end
+	if address:match(":") then
+		return "IPv6"
+	end
+	return "???"
+end
 
 -- wrapper for calling systemcommands
-function cmd(_command)
+local function cmd(_command)
 	local f = io.popen(_command)
 	local l = f:read("*a")
 	f:close()
@@ -15,7 +76,7 @@ function cmd(_command)
 end
 
 -- read contents of a given file
-function readFile(_file)
+local function readFile(_file)
 	local f = io.open(_file, "r")
 	if f~=nil then
 		local l = f:read("*a")
@@ -26,19 +87,8 @@ function readFile(_file)
 	end
 end
 
--- iterate through list
-function list_iter (_table)
-	local i = 0
-	local n = table.getn(_table)
-	return function ()
-		i = i + 1
-		if i <= n then return _table[i] end
-	end
-end
-
-localMode = false
-
 -- Should we enter local mode?
+localMode = false
 if arg[1] == '-l' then
 	localMode = true
 end
@@ -47,18 +97,25 @@ end
 local oldReport = nixio.open(PATH_DBG_REPORT, "r")
 if oldReport==nil then
 	-- no existing debugreport, let's generate a new one
-	
+
 	-- inform the User ;)
 	print('-- Hello, Mr. Dillinger. Thank you for coming back early.')
 	print('-- Sit right there; make yourself comfortable. Remember the time we spent play chess together?')
-	
+
 	-- first of all, collect some generic information about the system
 	debugdata = debugdata .. "---- BEGIN SYSTEM INFORMATION ----\n"
-	debugdata = debugdata .. cmd("uname -n")
-	debugdata = debugdata .. cmd("cat /lib/gluon/release")
-	debugdata = debugdata .. cmd("cat /tmp/sysinfo/model")
-	debugdata = debugdata .. cmd("uptime")
-	debugdata = debugdata .. cmd("date")
+	debugdata = debugdata .. "Hostname:    " .. hostname .. "\n"
+	debugdata = debugdata .. "Community:   " .. site.site_name .. "\n"
+	debugdata = debugdata .. "Model:       " .. model .. "\n"
+	debugdata = debugdata .. "Firmware:    " .. release .. " / " .. version .. "\n"
+	debugdata = debugdata .. "MAC:         " .. primary_mac .. "\n"
+	debugdata = debugdata .. "Contact:     " .. contact .. "\n"
+	debugdata = debugdata .. "Uptime:      " .. util.trim(sys.exec("uptime | sed 's/^ \+//'")) .. "\n"
+	debugdata = debugdata .. "Autoupdater: " .. autoupdater .. "\n"
+	debugdata = debugdata .. "Location:    " .. location() .. "\n"
+	debugdata = debugdata .. "IPs:         " .. util.trim(addresses) .. "\n"
+	debugdata = debugdata .. "Memory:      " .. string.format("%.1f %% used, %.1f %% free\n",(fields.MemTotal-fields.MemFree)/fields.MemTotal*100,fields.MemFree/fields.MemTotal*100)
+
 	debugdata = debugdata .. cmd("ps w")
 	debugdata = debugdata .. "---- END SYSTEM INFORMATION ----\n\n"
 
@@ -67,64 +124,90 @@ if oldReport==nil then
 	debugdata = debugdata .. cmd("uci show | grep -v '\.key' | grep -v '\.secret'")
 	debugdata = debugdata .. "---- END UCI VARIABLES ----\n\n"
 
+	-- show cron jobs
+	debugdata = debugdata .. "---- BEGIN CRON JOBS ----\n"
+	debugdata = debugdata .. cmd("grep -r \"\" /usr/lib/micron.d/ | sed -e \"s/:/:\n/\"")
+	debugdata = debugdata .. "---- END CRON JOBS ----\n\n"
+
 	-- now get some information about the network status
-	
 	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n"
-	debugdata = debugdata .. cmd("ip addr show") 
+	debugdata = debugdata .. cmd("ip addr show")
 	debugdata = debugdata .. cmd("ip route show")
 	debugdata = debugdata .. cmd("ip -6 route show")
 	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n\n"
 
-	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n"
-	debugdata = debugdata .. cmd("iptables -t raw -L -v")
-	debugdata = debugdata .. cmd("iptables -t filter -L -v")
-	debugdata = debugdata .. cmd("iptables -t nat -L -v")
-	debugdata = debugdata .. cmd("iptables -t mangle -L -v")                 
-	debugdata = debugdata .. cmd("ip6tables -t raw -L -v")
-	debugdata = debugdata .. cmd("ip6tables -t filter -L -v")
-	debugdata = debugdata .. cmd("ip6tables -t mangle -L -v")
-	debugdata = debugdata .. "---- BEGIN FIREWALL INFORMATION ----\n\n"	
-	
 	-- get wireless status
 	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
-	debugdata = debugdata .. cmd("iw phy phy0 info")
-	debugdata = debugdata .. cmd("iw dev ibss0 info")
-	debugdata = debugdata .. cmd("iw dev ibss0 station dump")
-	debugdata = debugdata .. cmd("iw dev client0 station dump")
-	debugdata = debugdata .. cmd("iwinfo phy0 scan")
-	debugdata = debugdata .. cmd("iwinfo ibss0 info")
-	debugdata = debugdata .. cmd("iwinfo client0 info")
-	debugdata = debugdata .. cmd("iwinfo ibss0 assoclist")
-	debugdata = debugdata .. cmd("iwinfo client0 assoclist")
+	debugdata = debugdata .. cmd("iwinfo ibss0 info 2>&1")
+	debugdata = debugdata .. cmd("iwinfo client0 info 2>&1")
+	debugdata = debugdata .. cmd("iwinfo ibss1 info 2>&1")
+	debugdata = debugdata .. cmd("iwinfo client1 info 2>&1")
+	debugdata = debugdata .. cmd("iwinfo ibss0 assoclist 2>&1")
+	debugdata = debugdata .. cmd("iwinfo ibss1 assoclist 2>&1")
 	debugdata = debugdata .. "---- END WIRELESS INFORMATION ----\n\n"
 
-	
-	-- try to get some more information about wlan hardware status
-	debugdata = debugdata .. "---- BEGIN HARDWARE STATUS ----\n"
-	_files = {"reset", "queues", "interrupt"}
-	for file in list_iter(_files) do
-		debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/" .. file)
-	end
-	
-	-- sleep ten seconds and read interrupt again
-	os.execute("sleep 10")
-	debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/interrupt")
-	
-	_files = {"ani", "base_eeprom", "dma", "dump_nfcal", "misc", "modal_eeprom", "phy_err", "recv", "xmit"}
-	for file in list_iter(_files) do
-		debugdata = debugdata .. readFile(ATH9K_DEBUGFS_DIR .. "/" .. file)
-	end
-	debugdata = debugdata .. "---- END HARDWARE STATUS ----\n\n"
-
-	-- get batman status	
-	debugdata = debugdata .. "---- BEGIN BATMAN AND FASTD STATUS ----\n"
-	debugdata = debugdata .. cmd("batctl gwl") 
+	-- get batman status
+	debugdata = debugdata .. "---- BEGIN BATMAN STATUS ----\n"
+	debugdata = debugdata .. cmd("batctl gwl")
 	debugdata = debugdata .. cmd("batctl tl")
-	
-	-- finally get fastd status
-	os.execute("killall -USR1 fastd 2>/dev/null")
+	debugdata = debugdata .. "---- END BATMAN STATUS ----\n\n"
+
+	-- get fastd status
+	debugdata = debugdata .. "---- BEGIN FASTD STATUS ----\n"
+	if string.len(util.exec("ip -f inet address show dev br-wan | grep global")) >= 2 then
+		debugdata = debugdata .. "IPv4 configured\n"
+	else
+		debugdata = debugdata .. "IPv4 not configured\n"
+	end
+
+	if string.len(util.exec("ip -f inet6 address show dev br-wan | grep global")) >= 2 then
+		debugdata = debugdata .. "IPv6 configured\n"
+	else
+		debugdata = debugdata .. "IPv6 not configured\n"
+	end
+
+	local stat, fastd_status = pcall(
+		function()
+			local fastd_sock = nixio.socket('unix', 'stream')
+			assert(fastd_sock:connect('/var/run/fastd.mesh_vpn.socket'))
+
+			decoder = json.new()
+			ltn12.pump.all(ltn12.source.file(fastd_sock), decoder:sink())
+			return decoder:get()
+		end
+	)
+
+	if stat then
+		debugdata = debugdata .. string.format("fastd running for %.3f seconds\n", fastd_status.uptime/1000)
+
+		local peers = 0
+		local connections = 0
+		for key, peer in pairs(fastd_status.peers) do
+			peers = peers+1
+
+			if peer.connection then
+				connections = connections+1
+			end
+		end
+		debugdata = debugdata .. string.format("There are %i peers configured, of which %i are connected:\n", peers, connections)
+
+		for key, peer in pairs(fastd_status.peers) do
+			debugdata = debugdata .. peer.name .. ": "
+			if peer.connection then
+				debugdata = debugdata .. string.format("connected for %.3f seconds via %s\n", peer.connection.established/1000, ip_proto(peer.address))
+			else
+				debugdata = debugdata .. "not connected\n"
+			end
+		end
+	else
+		debugdata = debugdata .. "fastd not running\n"
+	end
+	debugdata = debugdata .. "---- END FASTD STATUS ----\n\n"
+
+	-- get log
+	debugdata = debugdata .. "---- BEGIN LOGREAD ----\n"
 	debugdata = debugdata .. cmd("logread")
-	debugdata = debugdata .. "---- END BATMAN AND FASTD STATUS ----\n\n"
+	debugdata = debugdata .. "---- END LOGREAD ----\n\n"
 
 	debugdata = debugdata .. "---- BEGIN DMESG KERNEL LOG ----\n"
 	debugdata = debugdata .. cmd("dmesg")
@@ -132,7 +215,7 @@ if oldReport==nil then
 else
 	print('Orphaned debug-report file found.')
 	print('-- You wouldn\'t want me to dig up Flynn\'s file and read it up on a VDT at The Times, would you?')
-	debugdata = oldReport:readall() 
+	debugdata = oldReport:readall()
 	oldReport:close()
 end
 
@@ -149,7 +232,7 @@ else
 	local sent = 0
 	local reportname = nil
 	local port = siteConfig.debugserver.port
-	for host in list_iter(siteConfig.debugserver.host) do
+	for host in ipairs(siteConfig.debugserver.host) do
 		print('Trying to deliver debug-report to: ' .. host)
 		local sock = nixio.connect(host, port, "inet6", "stream")
 		if sock then
