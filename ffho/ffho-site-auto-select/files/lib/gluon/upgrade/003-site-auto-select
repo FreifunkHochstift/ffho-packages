@@ -4,7 +4,7 @@ local uci = require('luci.model.uci').cursor()
 local json = require 'luci.json'
 local tools = require 'gluon.site_generate'
 local shape = require 'gluon.pointwithinshape'
-local site_conf = require 'gluon.site_conf'
+local site_conf = require 'gluon.site_config'
 
 function get_config(file)
   local f = io.open(file)
