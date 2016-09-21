@@ -28,10 +28,11 @@ endef
 
 define Build/Compile
 	$(call GluonBuildI18N,ffho-luci-remote-syslog,i18n)
+	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
 endef
 
 define Package/ffho-luci-remote-syslog/install
-	$(CP) ./files/* $(1)/
+	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
 	$(call GluonInstallI18N,ffho-luci-remote-syslog,$(1))
 endef
 

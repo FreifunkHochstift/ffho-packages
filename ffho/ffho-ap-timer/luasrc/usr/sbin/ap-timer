@@ -2,7 +2,7 @@
 local timestamp = os.time()
 local uci = require('luci.model.uci').cursor()
 
-function compare(list, value)
+local function compare(list, value)
   if not list then
     return nil
   end
@@ -16,7 +16,7 @@ function compare(list, value)
   return false
 end
 
-function getDay()
+local function getDay()
   local type = uci:get('ap-timer','settings','type')
   if type == 'day' then return 'all'
   elseif type == 'week' then return os.date('%a', timestamp)
@@ -25,7 +25,7 @@ function getDay()
   end
 end
 
-function apSet(value)
+local function apSet(value)
   local execWifi = false
   local radios = {'client_radio0', 'client_radio1'}
   for _, radio in ipairs(radios) do

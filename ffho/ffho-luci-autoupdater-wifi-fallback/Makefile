@@ -29,10 +29,11 @@ endef
 
 define Build/Compile
 	$(call GluonBuildI18N,ffho-luci-autoupdater-wifi-fallback,i18n)
+	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
 endef
 
 define Package/ffho-luci-autoupdater-wifi-fallback/install
-	$(CP) ./files/* $(1)/
+	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
 	$(call GluonInstallI18N,ffho-luci-autoupdater-wifi-fallback,$(1))
 endef
 
