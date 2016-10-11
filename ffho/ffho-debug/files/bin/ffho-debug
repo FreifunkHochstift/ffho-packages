@@ -126,7 +126,7 @@ if oldReport==nil then
 
 	-- show cron jobs
 	debugdata = debugdata .. "---- BEGIN CRON JOBS ----\n"
-	debugdata = debugdata .. cmd("grep -r \"\" /usr/lib/micron.d/ | sed -e \"s/:/:\n/\"")
+	debugdata = debugdata .. cmd("grep -r \"\" /usr/lib/micron.d/ | sed -e \"s/:/:\\n/\"")
 	debugdata = debugdata .. "---- END CRON JOBS ----\n\n"
 
 	-- now get some information about the network status
