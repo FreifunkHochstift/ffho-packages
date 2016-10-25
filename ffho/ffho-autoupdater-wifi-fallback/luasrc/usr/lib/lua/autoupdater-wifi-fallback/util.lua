@@ -16,8 +16,10 @@ function get_available_wifi_networks()
     if iw then
       local list = iw.scanlist(radio)
       for _, net in ipairs(list) do
-        if net.ssid:match('.*[Ff][Rr][Ee][Ii][Ff][Uu][Nn][Kk].*') then
-          return radio, net.ssid, net.bssid
+        if net.ssid and net.bssid then
+          if net.ssid:match('.*[Ff][Rr][Ee][Ii][Ff][Uu][Nn][Kk].*') then
+            return radio, net.ssid, net.bssid
+          end
         end
       end
     end
