@@ -15,18 +15,19 @@ end
 
 function devOk (iface)
   local data = uci:get_all('wireless', iface)
-  if data.disabled then
+  if data.disabled == 1 then
     return null
   end
-  local radio = uci:get_all('wireless', data.radio)
-  if not radio.hwmode == '11g' or radio.disabled then
+  local radio = uci:get_all('wireless', data.device)
+  if not radio.hwmode == '11g' or radio.disabled == 1 then
     return null
   end
-  local wifitype = iwinfo.type(data.radio)
-  local iw = iwinfo[wifitype]
-  if iw.assoclist(iface) then
-    return true
-  end
+  local wifitype = iwinfo.type(data.device)
+  local iw = iwinfo[wifitype].assoclist(iface)
+  if iw then
+    if #iw > 0 then
+      return true
+    end
   return false
 end
 
