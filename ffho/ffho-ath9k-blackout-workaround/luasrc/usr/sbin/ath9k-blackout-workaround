@@ -14,17 +14,18 @@ function time2file (file)
 end
 
 function devOk (iface)
-  local data = uci:get_all('wireless', iface)
-  if data.disabled then
+  local radio = uci:get_all('wireless', iface, 'radio')
+  local disabled = uci:get_bool('wireless', iface, 'disabled') or uci:get_bool('wireless', radio, 'disabled')
+  if disabled then
     return null
   end
-  local radio = uci:get_all('wireless', data.radio)
-  if not radio.hwmode == '11g' or radio.disabled then
+  local hwmode = uci:get_all('wireless', radio, 'hwmode')
+  if not hwmode == '11g' then
     return null
   end
-  local wifitype = iwinfo.type(data.radio)
-  local iw = iwinfo[wifitype]
-  if iw.assoclist(iface) then
+  local wifitype = iwinfo.type(radio)
+  local assoclist = iwinfo[wifitype].assoclist(iface)
+  if assoclist and #assoclist > 0 then
     return true
   end
   return false
