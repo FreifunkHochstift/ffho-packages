@@ -54,9 +54,9 @@ if not fs.readfile(fileReset) then
   time2file(fileReset)
 end
 
-if check_wifi() or not fs.readfile(fileOk) then 
+if check_wifi() or not fs.readfile(fileOk) then
   time2file(fileOk)
-  os.exit(0)                             
+  os.exit(0)
 end
 
 local blackout_wait_secs = site.ath9k-workaround.blackout_wait *60

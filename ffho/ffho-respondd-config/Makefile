@@ -12,7 +12,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/ffho-respondd-config
   SECTION:=ffho
   CATEGORY:=FFHO
-  TITLE:=Additional respondd config files 
+  TITLE:=Additional respondd config files
   DEPENDS:=+gluon-core +libgluonutil
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
   URL:=https://git.c3pb.de/freifunk-pb/ffho-packages

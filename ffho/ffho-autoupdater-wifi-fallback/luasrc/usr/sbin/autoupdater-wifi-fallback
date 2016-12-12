@@ -60,7 +60,7 @@ local function connectivity_check()
     end
     f:close()
   end
-  
+
   -- connectivity check against updateserver
   for _, host in ipairs(get_update_hosts(branch_name)) do
     if os.execute("ping -w2 -c1 " .. host .. " > /dev/null 2>&1") == 0 then
@@ -125,7 +125,7 @@ if (force or preflight_check()) and not connectivity_check() then
     unreachable_since = uci:get(configname, 'settings', 'unreachable_since')
   end
   uci:save(configname)
-  
+
   if force or tonumber(unreachable_since) + offset < os.time() then
     io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "going to fallback mode"')
     local radio, ssid, bssid = get_available_wifi_networks()

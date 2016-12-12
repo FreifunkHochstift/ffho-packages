@@ -1,1 +1,1 @@
-chain('FFHO_NET_ONLY', 'DROP') 
+chain('FFHO_NET_ONLY', 'DROP')
