@@ -5,9 +5,7 @@ local json =  require 'luci.json'
 local site_code = require('gluon.site_config').site_code
 local tools = require 'gluon.site_generate'
 
-local template = io.open('/lib/gluon/site-select/template.json', 'r')
-local config = template:read("*a")
-default:close()
+local config = io.open('/lib/gluon/site-select/template.json'):read('*a')
 local groups = tools.get_config('/lib/gluon/site-select/groups.json')
 local sites = tools.get_config('/lib/gluon/site-select/sites.json')
 local currentsite = uci:get("currentsite", "current", "name")
