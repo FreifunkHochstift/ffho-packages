@@ -52,3 +52,9 @@ function set_site_code(site_code)
   return false
 end
 
+function replace_patterns(value, subst)
+  for k, v in pairs(subst) do
+    value = value:gsub(k, v)
+  end
+  return value
+end

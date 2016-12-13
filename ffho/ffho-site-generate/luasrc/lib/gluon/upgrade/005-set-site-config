@@ -5,20 +5,9 @@ local json =  require 'luci.json'
 local site_code = require('gluon.site_config').site_code
 local tools = require 'gluon.site_generate'
 
-function add_var_to_table(table, var)
-  if type(var) == "table" and type(table) == "table" then
-    for name, value in pairs(var) do
-      if table[name] and type(value) == "table" then
-        table[name] = add_var_to_table(table[name], value)
-      else
-        table[name]=value
-      end
-    end
-  end
-  return table
-end
-
-local default = tools.get_config('/lib/gluon/site-select/default.json')
+local template = io.open('/lib/gluon/site-select/template.json', 'r')
+local config = template:read("*a")
+default:close()
 local groups = tools.get_config('/lib/gluon/site-select/groups.json')
 local sites = tools.get_config('/lib/gluon/site-select/sites.json')
 local currentsite = uci:get("currentsite", "current", "name")
@@ -27,14 +16,23 @@ if site_code ~= currentsite then
   local configured = false
   for _, site in pairs(sites) do
     if site.site_code == currentsite then
-      if site.site_select and site.site_select.group and groups and groups[site.site_select.group] then
-        default = add_var_to_table(default, groups[site.site_select.group])
+      if site.subst then
+        config = tools.replace_patterns(config, site.subst)
       end
-      default = add_var_to_table(default, site)
+      if (site.site_select or {}).group and groups and groups[site.site_select.group] then
+        group = groups[site.site_select.group]
+        if group.subst then
+          config = tools.replace_patterns(config, group.subst)
+        end
+      end
+      local subst = {}
+      subst['%%SN'] = site.site_name
+      subst['%%SC'] = site.site_code
+      config = tools.replace_patterns(config, subst)
 
       local file = '/lib/gluon/site.json'
       local f = io.open(file, "w")
-      f:write(json.encode(default))
+      f:write(config)
       f:close()
 
       configured = true
