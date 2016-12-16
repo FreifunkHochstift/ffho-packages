@@ -38,7 +38,7 @@ define Package/ffho-site-generate/install
 	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
 	lua -e 'print(require("cjson").encode(assert(dofile("./scripts/template.lua"))))' > $(1)/lib/gluon/site-select/template.json
 	lua -e 'print(require("cjson").encode(assert(dofile("./scripts/sites.lua"))))' >  $(1)/lib/gluon/site-select/sites.json
-	if [ -e $(GLUON_SITEDIR)/extra/groups.conf  ]; then lua -e 'print(require("cjson").encode(assert(dofile("./scripts/groupes.lua"))))' >  $(1)/lib/gluon/site-select/groups.json; fi
+	if [ -e $(GLUON_SITEDIR)/extra/groups.conf  ]; then lua -e 'print(require("cjson").encode(assert(dofile("./scripts/groups.lua"))))' >  $(1)/lib/gluon/site-select/groups.json; fi
 endef
 
 $(eval $(call BuildPackage,ffho-site-generate))
