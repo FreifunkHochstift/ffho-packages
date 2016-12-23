@@ -1,2 +1,2 @@
 #!/bin/sh
-uci delete network.client.defaultroute
+uci -q delete network.client.defaultroute
