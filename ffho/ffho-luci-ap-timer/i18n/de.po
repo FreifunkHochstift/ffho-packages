@@ -4,8 +4,5 @@ msgstr "Content-Type: text/plain; charset=UTF-8"
 msgid "You can setup the AP Timer here"
 msgstr "Hier kannst du den AP-Timer konfigurieren"
 
-msgid "per day"
-msgstr "nach Tag"
-
 msgid "Daily"
 msgstr "Täglich"

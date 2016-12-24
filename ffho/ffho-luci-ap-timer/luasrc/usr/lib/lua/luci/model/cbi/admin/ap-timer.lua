@@ -12,9 +12,9 @@ o.rmempty = false
 
 o = s:option(ListValue, 'type', translate('Type'))
 o.default = 'day'
-o:value('day', translate('per Day'))
+o:value('day', translate('Daily'))
 
-s = m:section(NamedSection, 'all', 'day', 'Daily')
+s = m:section(NamedSection, 'all', 'day', translate('Daily'))
 s.addremove = false
 s.anonymous = true
 
