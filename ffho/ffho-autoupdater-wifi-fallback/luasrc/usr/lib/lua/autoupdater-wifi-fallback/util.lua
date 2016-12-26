@@ -7,25 +7,26 @@ function get_available_wifi_networks()
 
   uci:foreach('wireless', 'wifi-device',
     function(s)
-      table.insert(radios, s['.name'])
+      list[s['.name']] = {}
     end
   )
-  for _, radio in ipairs(radios) do
+
+  for radio, _ in pairs(radios) do
     local wifitype = iwinfo.type(radio)
     local iw = iwinfo[wifitype]
     if iw then
-      local list = iw.scanlist(radio)
-      for _, net in ipairs(list) do
+      local tmplist = iw.scanlist(radio)
+      for _, net in ipairs(tmplist) do
         if net.ssid and net.bssid then
           if net.ssid:match('.*[Ff][Rr][Ee][Ii][Ff][Uu][Nn][Kk].*') then
-            return radio, net.ssid, net.bssid
+            table.insert (radios[radio], net)
           end
         end
       end
     end
   end
 
-  return false
+  return radios
 end
 
 function get_update_hosts(branch)

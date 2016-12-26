@@ -128,13 +128,14 @@ if (force or preflight_check()) and not connectivity_check() then
 
   if force or tonumber(unreachable_since) + offset < os.time() then
     io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "going to fallback mode"')
-    local radio, ssid, bssid = get_available_wifi_networks()
-    if radio and ssid and bssid then
-      switch_to_fallback_mode(radio, ssid, bssid)
-      run_autoupdater()
-      -- this is only reached if no updated happened
-      revert_to_standard_mode()
+    for radio, netlist in pairs(get_available_wifi_networks()) do
+      for _, net in ipairs(netlist) do
+        switch_to_fallback_mode(radio, net.ssid, net.bssid)
+        run_autoupdater()
+      end
     end
+    -- this is only reached if no updated happened
+    revert_to_standard_mode()
   end
 else
   uci:delete(configname, 'settings','unreachable_since')
