@@ -131,7 +131,9 @@ if (force or preflight_check()) and not connectivity_check() then
     for radio, netlist in pairs(get_available_wifi_networks()) do
       for _, net in ipairs(netlist) do
         switch_to_fallback_mode(radio, net.ssid, net.bssid)
-        run_autoupdater()
+        if run_autoupdater() == 0 then
+          break
+        end
       end
     end
     -- this is only reached if no updated happened

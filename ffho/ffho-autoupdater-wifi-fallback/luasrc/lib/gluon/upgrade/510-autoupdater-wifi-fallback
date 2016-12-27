@@ -17,10 +17,19 @@ uci:section('autoupdater-wifi-fallback','autoupdater-wifi-fallback','settings',
 )
 
 uci:delete('wireless', 'fallback')
-
 uci:delete('network','fallback')
+uci:delete('network','fallback6')
+
 uci:section('network', 'interface', 'fallback',
   {
+    proto = 'dhcp',
+    peerdns = 1,
+    sourcefilter = 0,
+  }
+)
+uci:section('network', 'interface', 'fallback6',
+  {
+    ifname = '@fallback',
     proto = 'dhcpv6',
     peerdns = 1,
     sourcefilter = 0,

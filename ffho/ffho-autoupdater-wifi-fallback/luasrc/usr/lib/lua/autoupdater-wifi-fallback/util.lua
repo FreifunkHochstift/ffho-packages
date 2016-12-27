@@ -7,7 +7,7 @@ function get_available_wifi_networks()
 
   uci:foreach('wireless', 'wifi-device',
     function(s)
-      list[s['.name']] = {}
+      radios[s['.name']] = {}
     end
   )
 
