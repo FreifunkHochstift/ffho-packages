@@ -153,6 +153,20 @@ for _, ifname in ipairs(interfaces) do
   io.write("</pre>")
 end
 
+io.write("<h2>Mesh Interfaces</h2>")
+io.write("<pre>")
+local iface = false
+for _, line in ipairs(util.split(util.exec("batctl if"))) do
+  if not line:match("^primary0") then
+    io.write(line)
+	iface = true
+  end
+end
+if not iface then
+  io.write("none")
+end
+io.write("</pre>")
+
 io.write("<h2>VPN status</h2>")
 io.write("<pre>")
 
