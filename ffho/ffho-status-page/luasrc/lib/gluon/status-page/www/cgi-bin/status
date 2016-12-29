@@ -158,8 +158,8 @@ io.write("<pre>")
 local iface = false
 for _, line in ipairs(util.split(util.exec("batctl if"))) do
   if not line:match("^primary0") then
-    io.write(line)
-	iface = true
+    io.write(escape_html(line) .. '\n')
+    iface = true
   end
 end
 if not iface then
