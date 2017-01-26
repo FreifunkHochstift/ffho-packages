@@ -1,9 +1,0 @@
-#!/bin/sh
-
-. /lib/gluon/autoupdater/lib.sh
-
-
-start_enabled cron
-start_enabled haveged
-start_enabled micrond
-start_enabled sysntpd
