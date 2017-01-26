@@ -13,7 +13,7 @@ end
 m = Map('ap-timer', translate('AP Timer'), translate(
   'You can setup the AP Timer here'))
 m.pageaction = false
-m.template = "admin/expertmode"
+m.template = "cbi/simpleform"
 
 s = m:section(NamedSection, 'settings', 'ap-timer', nil)
 s.addremove = false

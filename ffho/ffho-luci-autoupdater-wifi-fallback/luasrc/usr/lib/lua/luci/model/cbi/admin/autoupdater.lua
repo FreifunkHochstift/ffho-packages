@@ -34,6 +34,6 @@ s2:option(Flag, "enabled", translate("Enable"))
 
 local c = Compound(m, m2)
 c.pageaction = false
-c.template = "admin/expertmode"
+c.template = "cbi/simpleform"
 return c
 

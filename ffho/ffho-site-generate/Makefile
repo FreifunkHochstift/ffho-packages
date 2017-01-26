@@ -8,7 +8,7 @@ PFG_BUILD_DEPENDS := lua-cjson/host
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
-include $(GLUONDIR)/include/package.mk
+include $(TOPDIR)/../package/gluon.mk
 
 define Package/ffho-site-generate
   SECTION:=ffho
@@ -23,22 +23,25 @@ define Package/ffho-site-generate/description
 endef
 
 define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
+	mkdir -p $(PKG_BUILD_DIR)/site-select
 endef
 
 define Build/Configure
 endef
 
 define Build/Compile
+	GLUON_SITEDIR='$(call qstrip,$(CONFIG_GLUON_SITEDIR))' lua -e 'print(require("cjson").encode(assert(dofile("./scripts/sites.lua"))))' > $(PKG_BUILD_DIR)/site-select/sites.json
+	GLUON_SITEDIR='$(call qstrip,$(CONFIG_GLUON_SITEDIR))' lua -e 'print(require("cjson").encode(assert(dofile("./scripts/template.lua"))))' > $(PKG_BUILD_DIR)/site-select/template.json
+	if [ -e $(call qstrip,$(CONFIG_GLUON_SITEDIR))/extra/groups.conf  ]; then GLUON_SITEDIR='$(call qstrip,$(CONFIG_GLUON_SITEDIR))' lua -e 'print(require("cjson").encode(assert(dofile("./scripts/groups.lua"))))' >  $(PKG_BUILD_DIR)/site-select/groups.json; fi
 	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
 endef
 
 define Package/ffho-site-generate/install
 	$(CP) ./files/* $(1)/
 	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-	lua -e 'print(require("cjson").encode(assert(dofile("./scripts/template.lua"))))' > $(1)/lib/gluon/site-select/template.json
-	lua -e 'print(require("cjson").encode(assert(dofile("./scripts/sites.lua"))))' >  $(1)/lib/gluon/site-select/sites.json
-	if [ -e $(GLUON_SITEDIR)/extra/groups.conf  ]; then lua -e 'print(require("cjson").encode(assert(dofile("./scripts/groups.lua"))))' >  $(1)/lib/gluon/site-select/groups.json; fi
+
+	$(INSTALL_DIR) $(1)/lib/gluon/site-select
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/site-select/* $(1)/lib/gluon/site-select/
 endef
 
 $(eval $(call BuildPackage,ffho-site-generate))

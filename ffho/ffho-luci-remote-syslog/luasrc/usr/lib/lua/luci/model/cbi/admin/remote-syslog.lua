@@ -1,7 +1,7 @@
 m = Map("system", translate("Remote Syslog"), translate(
   "If you want to use a remote syslog server, you can set it up here."))
 m.pageaction = false
-m.template = "admin/expertmode"
+m.template = "cbi/simpleform"
 
 s = m:section(TypedSection, "system", nil)
 s.addremove = false

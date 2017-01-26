@@ -8,7 +8,7 @@ PFG_BUILD_DEPENDS := lua-cjson/host
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
-include $(GLUONDIR)/include/package.mk
+include $(TOPDIR)/../package/gluon.mk
 
 define Package/ffho-site-auto-select
   SECTION:=ffho
@@ -31,13 +31,14 @@ define Build/Configure
 endef
 
 define Build/Compile
+	lua -e 'print(require("cjson").encode(require("cjson").decode(io.open("$(call qstrip,$(CONFIG_GLUON_SITEDIR))/extra/geo.json"):read("*a"))))' > $(PKG_BUILD_DIR)/geo.json
 	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
 endef
 
 define Package/ffho-site-auto-select/install
 	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
 	$(INSTALL_DIR) $(1)/lib/gluon/site-select
-	lua -e 'print(require("cjson").encode(require("cjson").decode(io.open("$(GLUON_SITEDIR)/extra/geo.json"):read("*a"))))' > $(1)/lib/gluon/site-select/geo.json
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/geo.json $(1)/lib/gluon/site-select/
 endef
 
 $(eval $(call BuildPackage,ffho-site-auto-select))
