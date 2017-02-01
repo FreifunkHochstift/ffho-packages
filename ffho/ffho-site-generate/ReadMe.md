@@ -2,9 +2,9 @@ ffho-site-generate
 ==================
 
 This package generates the needed `site.json` directly on the node after firmware
-upgrad has been performed. This can be used, to support different sites/regions
+upgrade has been performed. This can be used, to support different sites/regions
 within one firmware image. The default `site.json` will be replaced by
-`site/extra/template.conf` which is patly replacte by values defined in
+`site/extra/template.conf` which is partially replaced by values defined in
 `site/extra/sites.conf` and `site/extra/groups.conf`.
 
 One can generate the `site.conf` before build with: `GLUON_SITEDIR=$PATH ./scripts/gen-site-conf.lua`
