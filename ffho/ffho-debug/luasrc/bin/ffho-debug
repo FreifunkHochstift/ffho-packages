@@ -1,7 +1,6 @@
 #!/usr/bin/lua
 
 debugdata = ""
-ATH9K_DEBUGFS_DIR="/sys/kernel/debug/ieee80211/phy0/ath9k"
 PATH_DBG_REPORT='/tmp/debug-report.txt'
 
 local nixio = require('nixio'), require('nixio.util')
@@ -138,12 +137,13 @@ if oldReport==nil then
 
 	-- get wireless status
 	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
-	debugdata = debugdata .. cmd("iwinfo ibss0 info 2>&1")
-	debugdata = debugdata .. cmd("iwinfo client0 info 2>&1")
-	debugdata = debugdata .. cmd("iwinfo ibss1 info 2>&1")
-	debugdata = debugdata .. cmd("iwinfo client1 info 2>&1")
-	debugdata = debugdata .. cmd("iwinfo ibss0 assoclist 2>&1")
-	debugdata = debugdata .. cmd("iwinfo ibss1 assoclist 2>&1")
+	local interfaces = util.split(util.trim(util.exec("iw dev | grep Interface | cut -d' ' -f2")))
+	for _, ifname in ipairs(interfaces) do
+		debugdata = debugdata .. cmd("iwinfo " .. ifname .. " info 2>&1")
+		if ifname:match('ibss') or ifname:match('mesh') then
+			debugdata = debugdata .. cmd("iwinfo " .. ifname .. " assoclist 2>&1")
+		end
+	end
 	debugdata = debugdata .. "---- END WIRELESS INFORMATION ----\n\n"
 
 	-- get batman status
@@ -220,7 +220,6 @@ else
 end
 
 -- if local mode is requested print the report, otherwise send it to the admin team
-siteConfig = require("gluon.site_config")
 if localMode then
 	print('Omitting to send the report data to a report-server')
 	print('-- Sark! All of my functions are now yours. Take them!:')
@@ -231,8 +230,8 @@ else
 	print('-- My User has information that could... that could make this a free system again!')
 	local sent = 0
 	local reportname = nil
-	local port = siteConfig.debugserver.port
-	for host in ipairs(siteConfig.debugserver.host) do
+	local port = site.debugserver.port
+	for _, host in ipairs(site.debugserver.host) do
 		print('Trying to deliver debug-report to: ' .. host)
 		local sock = nixio.connect(host, port, "inet6", "stream")
 		if sock then
