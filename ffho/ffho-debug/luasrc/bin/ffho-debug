@@ -33,7 +33,7 @@ end
 local addresses = ""
 for line in io.lines('/proc/net/if_inet6') do
 	local matches = { line:match('^' .. string.rep('(%x%x%x%x)', 8) .. string.rep(' %x%x', 4) .. '%s+([^%s]+)$') }
-	if matches[9] == 'br-client' then
+	if matches[9] == 'local-node' then
 		addresses = addresses .. "             " .. ip.IPv6(string.format('%s:%s:%s:%s:%s:%s:%s:%s', unpack(matches))):string():lower() .. "\n"
 	end
 end
