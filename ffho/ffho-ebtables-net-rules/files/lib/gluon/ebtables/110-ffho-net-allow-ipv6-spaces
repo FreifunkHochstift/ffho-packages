@@ -4,6 +4,6 @@ rule ('FFHO_NET_ONLY -p IPv6 --ip6-src fe80::/10 -j RETURN')
 rule ('FFHO_NET_ONLY -p IPv6 --ip6-dst ff00::/8 -j RETURN')
 rule ('FFHO_NET_ONLY -p IPv6 --ip6-src ' .. siteConfig.prefix6 .. ' -j RETURN')
 
-for _, prefix in ipairs(siteConfig.additional_prefix6) do
+for _, prefix in ipairs(siteConfig.additional_prefix6 or {}) do
 	rule ('FFHO_NET_ONLY -p IPv6 --ip6-src ' .. prefix .. ' -j RETURN')
 end
