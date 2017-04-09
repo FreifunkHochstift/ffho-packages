@@ -1,26 +1,37 @@
 ffho-ebtables-net-rules
 =======================
 
-Additional ebtables rules for Freifunk-Nodes
+The *ffho-ebtables-net-rules* package adds an additional layer-2 filter
+ruleset to prevent unreasonable traffic entering the network via the nodes.
+Unreasonable means traffic entering the mesh via a node which source IP does
+not belong to the configured IP space.
+
+One may first check if there is a certain proportion of unreasonable traffic,
+before adding this package to the firmware image. Additional one should not
+use this package if some kind of gateway or upstream network is provided by
+a device connected to the client port.
 
 site.conf
 ---------
 
-**prefix4:**
-- IPv4 prefix
+**prefix4: optional**
+- IPv4 subnet
 
 **prefix6:**
-- IPv6 prefix
+- IPv6 subnet
 
-**additional_prefix6: optional**
-- list of additional IPv6 prefix
+**extra_prefixes6 : optional**
+- list of additional IPv6 subnets
+
+**additional_prefix6: outdated**
+- list of additional IPv6 subnets
 
 ### example
 ```lua
 {
-  prefix4 = '10.132.0.0./18',
-  prefix6 = 'fdca:ffee:ff12:132::/64',
-  additional_prefix6 = { '2a03:2260:2342:2300::/64' },
+  prefix4 = '198.51.100.0/21',
+  prefix6 = '2001:db8:8::/64',
+  extra_prefixes6 = { '2001:db8:9::/64', '2001:db8:100::/60' },
   ...
 },
 ```
