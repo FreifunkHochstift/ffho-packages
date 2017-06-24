@@ -1,6 +1,6 @@
 #!/usr/bin/lua
 local timestamp = os.time()
-local uci = require('luci.model.uci').cursor()
+local uci = require('simple-uci').cursor()
 
 local function compare(list, value)
   if not list then
@@ -17,7 +17,7 @@ local function compare(list, value)
 end
 
 local function getDay()
-  local type = uci:get('ap-timer','settings','type')
+  local type = uci:get('ap-timer', 'settings', 'type')
   if type == 'day' then return 'all'
   elseif type == 'week' then return os.date('%a', timestamp)
   elseif type == 'month' then return os.date('%d', timestamp)
@@ -25,12 +25,12 @@ local function getDay()
   end
 end
 
-local function apSet(value)
+local function apSet(enable)
   local execWifi = false
   local radios = {'client_radio0', 'client_radio1'}
   for _, radio in ipairs(radios) do
     if uci:get('wireless', radio) then
-      uci:set('wireless', radio, 'disabled', value and 0 or 1)
+      uci:set('wireless', radio, 'disabled', not enable)
       execWifi = true
     end
   end
@@ -41,9 +41,9 @@ local function apSet(value)
   end
 end
 
-if uci:get_bool('ap-timer','settings','enabled') then
+if uci:get_bool('ap-timer', 'settings', 'enabled') then
   local day = getDay()
-  local current = os.date("%H:%M", timestamp)
+  local current = os.date('%H:%M', timestamp)
 
   local off = compare(uci:get_list('ap-timer', day, 'off'), current)
   local on = compare(uci:get_list('ap-timer', day, 'on'), current)
