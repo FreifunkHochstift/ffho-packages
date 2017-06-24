@@ -1,15 +1,14 @@
 #!/usr/bin/lua
-local fs = require('nixio.fs')
-local uci = require('luci.model.uci').cursor()
+local fs = require 'nixio.fs'
+local uci = require('simple-uci').cursor()
 local site = require 'gluon.site_config'
-local util = require 'luci.util'
-local ut = require('autoupdater-wifi-fallback.util')
-local gluon = require 'gluon.util'
+local autil = require 'autoupdater-wifi-fallback.util'
+local util = require 'gluon.util'
 
 local configname = 'autoupdater-wifi-fallback'
 local force = false
 local min_uptime_secs = 3600
-local branch_name = uci:get('autoupdater','settings','branch')
+local branch_name = uci:get('autoupdater', 'settings', 'branch')
 
 local function parse_args()
 local i = 1
@@ -20,7 +19,7 @@ local i = 1
       i=i+1
 
       if not arg[i] then
-        io.stderr:write("Error parsing command line: expected branch name\n")
+        io.stderr:write('Error parsing command line: expected branch name\n')
         os.exit(1)
       end
 
@@ -34,10 +33,10 @@ local i = 1
 end
 
 local function preflight_check()
-  if not uci:get_bool(configname,'settings','enabled') then
+  if not uci:get_bool(configname, 'settings', 'enabled') then
     return false
   end
-  if not uci:get_bool('autoupdater','settings','enabled') then
+  if not uci:get_bool('autoupdater', 'settings', 'enabled') then
     return false
   end
   if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < min_uptime_secs then
@@ -51,9 +50,9 @@ local function connectivity_check()
   local f = io.open('/sys/kernel/debug/batman_adv/bat0/gateways', 'r')
   if f then
     for line in f:lines() do
-      local gateway_mac = line:match("^=?>? +([0-9a-f:]+)")
+      local gateway_mac = line:match('^=?>? +([0-9a-f:]+)')
       if gateway_mac then
-        if os.execute("batctl ping -t5 -c1 " .. gateway_mac .. " > /dev/null 2>&1") == 0 then
+        if os.execute('batctl ping -t5 -c1 ' .. gateway_mac .. ' > /dev/null 2>&1') == 0 then
           return true
         end
       end
@@ -63,7 +62,7 @@ local function connectivity_check()
 
   -- connectivity check against updateserver
   for _, host in ipairs(get_update_hosts(branch_name)) do
-    if os.execute("ping -w2 -c1 " .. host .. " > /dev/null 2>&1") == 0 then
+    if os.execute('ping -w2 -c1 ' .. host .. ' > /dev/null 2>&1') == 0 then
       return true
     end
   end
@@ -74,38 +73,36 @@ end
 
 local function run_autoupdater()
   io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "execute the autoupdater"')
-  os.execute("/usr/sbin/autoupdater -f -b " .. branch_name)
+  os.execute('/usr/sbin/autoupdater -f -b ' .. branch_name)
 end
 
 local function switch_to_fallback_mode(radio, ssid, bssid)
   io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "connect to '  .. radio .. ' ' .. ssid .. ' ' .. bssid .. '"')
   uci:delete_all('wireless', 'wifi-iface')
-  uci:section('wireless', 'wifi-iface', 'fallback',
-    {
-      device = radio,
-      network = 'fallback',
-      mode = 'sta',
-      disabled = 0,
-      macaddr = gluon.generate_mac(3, 10),
-      bssid = bssid,
-      ssid = ssid,
-      ifname = 'fallback',
-      encryption = 'none',
-    }
-  )
-  uci:set('wireless', radio, 'disabled', 0)
+  uci:section('wireless', 'wifi-iface', 'fallback', {
+    device = radio,
+    network = 'fallback',
+    mode = 'sta',
+    disabled = false,
+    macaddr = util.generate_mac(3, 10),
+    bssid = bssid,
+    ssid = ssid,
+    ifname = 'fallback',
+    encryption = 'none',
+  })
+  uci:set('wireless', radio, 'disabled', false)
   uci:save('wireless')
 
-  os.execute("wifi")
-  os.execute("sleep 5")
+  os.execute('wifi')
+  os.execute('sleep 5')
   uci:revert('wireless')
-  os.execute("sleep 20")
+  os.execute('sleep 20')
 end
 
 local function revert_to_standard_mode()
   io.popen('logger -s -t autoupdater-wifi-fallback -p local0.info "going back to standard mode"')
-  os.execute("/etc/init.d/network restart")
-  os.execute("sleep 30")
+  os.execute('/etc/init.d/network restart')
+  os.execute('sleep 30')
 end
 
 parse_args()
@@ -140,7 +137,7 @@ if (force or preflight_check()) and not connectivity_check() then
     revert_to_standard_mode()
   end
 else
-  uci:delete(configname, 'settings','unreachable_since')
-  uci:delete(configname, 'settings','last_run')
+  uci:delete(configname, 'settings', 'unreachable_since')
+  uci:delete(configname, 'settings', 'last_run')
   uci:save(configname)
 end

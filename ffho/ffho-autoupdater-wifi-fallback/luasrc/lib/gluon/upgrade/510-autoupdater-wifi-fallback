@@ -1,40 +1,35 @@
 #!/usr/bin/lua
 
-local uci = require 'luci.model.uci'.cursor()
-local util = require 'gluon.util'
-local fs = require('nixio.fs')
+local uci = require('simple-uci').cursor()
+local fs = require 'nixio.fs'
 
-local enabled = uci:get('autoupdater','settings','enabled')
+local enabled
 if uci:get('autoupdater-wifi-fallback', 'settings') then
-  enabled = uci:get_bool('autoupdater-wifi-fallback', 'settings', 'enabled') and 1 or 0
+  enabled = uci:get_bool('autoupdater-wifi-fallback', 'settings', 'enabled')
   uci:delete('autoupdater-wifi-fallback', 'settings')
+else
+  enabled = uci:get_bool('autoupdater', 'settings', 'enabled')
 end
 
-uci:section('autoupdater-wifi-fallback','autoupdater-wifi-fallback','settings',
-  {
-    enabled = enabled,
-  }
-)
+uci:section('autoupdater-wifi-fallback', 'autoupdater-wifi-fallback', 'settings',{
+  enabled = enabled,
+})
 
 uci:delete('wireless', 'fallback')
-uci:delete('network','fallback')
-uci:delete('network','fallback6')
+uci:delete('network', 'fallback')
+uci:delete('network', 'fallback6')
 
-uci:section('network', 'interface', 'fallback',
-  {
-    proto = 'dhcp',
-    peerdns = 1,
-    sourcefilter = 0,
-  }
-)
-uci:section('network', 'interface', 'fallback6',
-  {
-    ifname = '@fallback',
-    proto = 'dhcpv6',
-    peerdns = 1,
-    sourcefilter = 0,
-  }
-)
+uci:section('network', 'interface', 'fallback',{
+  proto = 'dhcp',
+  peerdns = true,
+  sourcefilter = false,
+})
+uci:section('network', 'interface', 'fallback6',{
+  ifname = '@fallback',
+  proto = 'dhcpv6',
+  peerdns = true,
+  sourcefilter = false,
+})
 
 uci:save('autoupdater-wifi-fallback')
 uci:save('network')
