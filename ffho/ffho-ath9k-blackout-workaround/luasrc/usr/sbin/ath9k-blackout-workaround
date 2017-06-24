@@ -1,11 +1,11 @@
 #!/usr/bin/lua
-local fs = require('nixio.fs')
-local uci = require('luci.model.uci').cursor()
-local iwinfo = require "iwinfo"
+local fs = require 'nixio.fs'
+local uci = require('simple-uci').cursor()
+local iwinfo = require 'iwinfo'
 local site = require 'gluon.site_config'
 
-local fileOk="/tmp/ath9k-ok"
-local fileReset="/tmp/ath9k-reset"
+local fileOk = '/tmp/ath9k-ok'
+local fileReset = '/tmp/ath9k-reset'
 
 function time2file (file)
   local f = io.open(file, 'w')
@@ -38,16 +38,11 @@ function check_wifi()
       table.insert(ifaces, s['.name'])
     end
   )
-  local blackout = false
+  local ok = false
   for _, iface in ipairs(ifaces) do
-    local tmp = devOk(iface)
-    if tmp then
-      return true
-    elseif tmp == false then
-      blackout = true
-    end
+    ok = ok or devOk(iface)
   end
-  return not blackout
+  return ok
 end
 
 if not fs.readfile(fileReset) then
@@ -72,4 +67,4 @@ end
 
 io.popen('logger -s -t ath9k-blackout-workaround -p local0.info "blackout detected, resart wifi"')
 time2file(fileReset)
-os.execute("wifi")
+os.execute('wifi')
