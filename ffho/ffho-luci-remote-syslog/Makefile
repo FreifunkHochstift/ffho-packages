@@ -16,7 +16,6 @@ define Package/ffho-luci-remote-syslog
   TITLE:=Luci module for setting a remote syslog server
   DEPENDS:=+gluon-luci-admin
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

@@ -14,7 +14,6 @@ define Package/ffho-autoupdater-wifi-fallback-legacy
   TITLE:=Toolset of scripts for migration of ffho-autoupdater-wifi-fallback.
   DEPENDS:=+ffho-autoupdater-wifi-fallback
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-autoupdater-wifi-fallback-legacy/description

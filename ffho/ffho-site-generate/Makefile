@@ -16,7 +16,6 @@ define Package/ffho-site-generate
   TITLE:=Scripts for generating a new site.json
   DEPENDS:=+gluon-core +luci-lib-json
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-site-generate/description

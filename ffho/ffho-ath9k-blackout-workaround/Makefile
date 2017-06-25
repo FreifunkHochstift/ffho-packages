@@ -14,7 +14,6 @@ define Package/ffho-ath9k-blackout-workaround
   TITLE:=ATH9K-Blackout workaround
   DEPENDS:=+gluon-core +micrond
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-ath9k-blackout-workaround/description

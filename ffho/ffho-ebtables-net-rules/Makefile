@@ -14,7 +14,6 @@ define Package/ffho-ebtables-net-rules
   TITLE:=FFHO net-specific ebtables rules to filter unreasonable L2 traffic.
   DEPENDS:=+gluon-core +gluon-ebtables
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-ebtables-net-rules/description

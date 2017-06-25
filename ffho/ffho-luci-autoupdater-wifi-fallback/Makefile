@@ -16,7 +16,6 @@ define Package/ffho-luci-autoupdater-wifi-fallback
   TITLE:=Luci module for gluon-autoupdater and ffho-autoupdater-wifi-fallback
   DEPENDS:=+gluon-luci-admin +gluon-autoupdater +ffho-autoupdater-wifi-fallback
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

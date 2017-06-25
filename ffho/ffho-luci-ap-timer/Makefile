@@ -16,7 +16,6 @@ define Package/ffho-luci-ap-timer
   TITLE:=Luci module for ap-timer settings
   DEPENDS:=+gluon-luci-admin
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

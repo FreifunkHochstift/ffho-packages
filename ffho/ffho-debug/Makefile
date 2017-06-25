@@ -14,7 +14,6 @@ define Package/ffho-debug
   TITLE:=Debug scripts for Freifunk Hochstift
   DEPENDS:=+gluon-core +ubus +libubox +busybox
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-debug/description

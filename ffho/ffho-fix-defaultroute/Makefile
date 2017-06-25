@@ -14,7 +14,6 @@ define Package/ffho-fix-defaultroute
   TITLE:=Freifunk Hochstift fix Defaultroute
   DEPENDS:=+gluon-core
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

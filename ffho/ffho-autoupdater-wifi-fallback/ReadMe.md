@@ -8,7 +8,7 @@ a fully operative mesh or not. Else the node connects to a visible "Freifunknetz
 and tries downloads an update as wlan-client via executing `autoupdater -f`.
 
 Actually this needs `iw connect` patched into `iw`. See our patch within our
-[site repository](https://git.c3pb.de/freifunk-pb/site-ffho).
+[site repository](https://git.ffho.net/freifunkhochstift/ffho-site).
 
 /etc/config/autoupdater-wifi-fallback
 -------------------------------------

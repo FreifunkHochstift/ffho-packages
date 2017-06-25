@@ -16,7 +16,6 @@ define Package/ffho-config-mode-site-select
   TITLE:=UI for changing the node-config
   DEPENDS:=+gluon-config-mode-core-virtual +ffho-site-generate
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Build/Prepare

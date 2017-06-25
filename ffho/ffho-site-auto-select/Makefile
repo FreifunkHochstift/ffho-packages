@@ -16,7 +16,6 @@ define Package/ffho-site-auto-select
   TITLE:=Toolset to autodetect the site.
   DEPENDS:=+gluon-core +micrond +gluon-neighbour-info +ffho-site-generate
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-site-auto-select/description

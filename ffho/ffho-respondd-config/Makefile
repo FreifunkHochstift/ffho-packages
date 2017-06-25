@@ -15,7 +15,6 @@ define Package/ffho-respondd-config
   TITLE:=Additional respondd config files
   DEPENDS:=+gluon-core +libgluonutil
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-respondd-config/description

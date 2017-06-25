@@ -14,7 +14,6 @@ define Package/ffho-geo-location-altitude-delete
   TITLE:=Deleting the altitude value of the geo location
   DEPENDS:=+gluon-core
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-geo-location-altitude-delete/description

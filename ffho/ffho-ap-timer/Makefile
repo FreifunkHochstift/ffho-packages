@@ -14,7 +14,6 @@ define Package/ffho-ap-timer
   TITLE:=Timer for the client wifi
   DEPENDS:=+gluon-core
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
-  URL:=https://git.c3pb.de/freifunk-pb/ffho-packages
 endef
 
 define Package/ffho-ap-timer/description
