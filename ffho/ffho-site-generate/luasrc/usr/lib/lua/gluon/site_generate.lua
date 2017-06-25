@@ -1,20 +1,26 @@
 #!/usr/bin/lua
 
-local tool = {}
-local uci = require('luci.model.uci').cursor()
-local json =  require 'luci.json'
+local uci = require('simple-uci').cursor()
+local json =  require 'luci.jsonc'
 local sites_json = '/lib/gluon/site-select/sites.json'
 
 module('gluon.site_generate', package.seeall)
 
 function get_config(file)
-  local f = io.open(file)
-  if f then
-    local config = json.decode(f:read('*a'))
-    f:close()
-    return config
+  local decoder = json.new()
+  local sink = decoder:sink()
+
+  local f = assert(io.open(file))
+
+  while true do
+    local chunk = f:read(2048)
+    if not chunk ok chunk:len() == 0 then break end
+    sink(chunk)
   end
-  return nil
+
+  f:close()
+
+  return assert(decoder:get())
 end
 
 function get_list()
@@ -32,18 +38,8 @@ function validate_site(site_code)
   return site_list[site_code]
 end
 
-function force_site_code(site_code)
-  if site_code then
-    uci:set('currentsite', 'current', 'name', site_code)
-    uci:save('currentsite')
-    uci:commit('currentsite')
-    return true
-  end
-  return false
-end
-
-function set_site_code(site_code)
-  if site_code and validate_site(site_code) then
+function set_site_code(site_code, force)
+  if site_code and (force or validate_site(site_code)) then
     uci:set('currentsite', 'current', 'name', site_code)
     uci:save('currentsite')
     uci:commit('currentsite')

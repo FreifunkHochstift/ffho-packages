@@ -14,7 +14,7 @@ define Package/ffho-site-generate
   SECTION:=ffho
   CATEGORY:=Site-select
   TITLE:=Scripts for generating a new site.json
-  DEPENDS:=+gluon-core +luci-lib-json
+  DEPENDS:=+gluon-core
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
 endef
 

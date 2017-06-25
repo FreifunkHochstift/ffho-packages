@@ -1,19 +1,18 @@
 #!/usr/bin/lua
 
-local uci = require('luci.model.uci').cursor()
-local json =  require 'luci.json'
+local uci = require('simple-uci').cursor()
 local site_code = require('gluon.site_config').site_code
 local tools = require 'gluon.site_generate'
 
-local config = io.open('/lib/gluon/site-select/template.json'):read('*a')
 local groups = tools.get_config('/lib/gluon/site-select/groups.json')
 local sites = tools.get_config('/lib/gluon/site-select/sites.json')
-local currentsite = uci:get("currentsite", "current", "name")
+local currentsite = uci:get('currentsite', 'current', 'name')
 
 if site_code ~= currentsite then
   local configured = false
   for _, site in pairs(sites) do
     if site.site_code == currentsite then
+      local config = io.open('/lib/gluon/site-select/template.json'):read('*a')
       local subst = {}
       subst['%%SN'] = site.site_name
       subst['%%SC'] = site.site_code
@@ -33,7 +32,7 @@ if site_code ~= currentsite then
       config = tools.replace_patterns(config, subst)
 
       local file = '/lib/gluon/site.json'
-      local f = io.open(file, "w")
+      local f = io.open(file, 'w')
       f:write(config)
       f:close()
 
@@ -43,6 +42,6 @@ if site_code ~= currentsite then
   end
 
   if configured == false then
-    tools.force_site_code(site_code)
+    tools.set_site_code(site_code, true)
   end
 end
