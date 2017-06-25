@@ -14,7 +14,7 @@ function get_config(file)
 
   while true do
     local chunk = f:read(2048)
-    if not chunk ok chunk:len() == 0 then break end
+    if not chunk or chunk:len() == 0 then break end
     sink(chunk)
   end
 
