@@ -11,7 +11,7 @@ You may obtain a copy of the License at
 
 local uci = require('simple-uci').cursor()
 local autoupdater = uci:get_first('autoupdater', 'autoupdater')
-local wifi-fallback = uci:get_first('autoupdater-wifi-fallback', 'autoupdater-wifi-fallback')
+local wifi_fallback = uci:get_first('autoupdater-wifi-fallback', 'autoupdater-wifi-fallback')
 
 local f = Form(translate('Automatic updates'))
 local s = f:section(Section)
@@ -37,9 +37,9 @@ end
 local s = f:section(Section, translate('Wifi fallback updates'))
 
 o = s:option(Flag, 'enabled', translate('Enable'))
-o.default = uci:get_bool('autoupdater-wifi-fallback', wifi-fallback, 'enabled')
+o.default = uci:get_bool('autoupdater-wifi-fallback', wifi_fallback, 'enabled')
 function o:write(data)
-	uci:set('autoupdater-wifi-fallback', wifi-fallback, 'enabled', data)
+	uci:set('autoupdater-wifi-fallback', wifi_fallback, 'enabled', data)
 	uci:commit('autoupdater-wifi-fallback')
 end
 
