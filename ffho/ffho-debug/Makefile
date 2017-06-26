@@ -12,7 +12,7 @@ define Package/ffho-debug
   SECTION:=ffho
   CATEGORY:=FFHO
   TITLE:=Debug scripts for Freifunk Hochstift
-  DEPENDS:=+gluon-core +ubus +libubox +busybox
+  DEPENDS:=+gluon-core
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
 endef
 
