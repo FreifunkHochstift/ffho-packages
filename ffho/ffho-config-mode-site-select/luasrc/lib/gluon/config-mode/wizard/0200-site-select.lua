@@ -22,11 +22,11 @@ return function(form, uci)
 	end
 
 	function o:write(data)
-		if data.community ~= uci:get('currentsite', 'current', 'name') then
-			tools.set_site_code(data.community, false)
+		if data ~= uci:get('currentsite', 'current', 'name') then
+			tools.set_site_code(data, false)
 		end
 
-		if data.community ~= default.site_code then
+		if data ~= default.site_code then
 			os.execute('sh "/lib/gluon/site-select/site-upgrade"')
 		end
 	end
