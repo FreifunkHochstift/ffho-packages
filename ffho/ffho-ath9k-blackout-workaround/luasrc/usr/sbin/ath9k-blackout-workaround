@@ -14,7 +14,7 @@ function time2file (file)
 end
 
 function devOk (iface)
-  local radio = uci:get_all('wireless', iface, 'radio')
+  local radio = uci:get_all('wireless', iface, 'device')
   local disabled = uci:get_bool('wireless', iface, 'disabled') or uci:get_bool('wireless', radio, 'disabled')
   if disabled then
     return null
