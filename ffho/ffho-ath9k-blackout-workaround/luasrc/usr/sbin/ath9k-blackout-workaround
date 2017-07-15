@@ -54,8 +54,8 @@ if check_wifi() or not fs.readfile(fileOk) then
   os.exit(0)
 end
 
-local blackout_wait_secs = site.ath9k-workaround.blackout_wait *60
-local reset_wait_secs = site.ath9k-workaround.reset_wait *60
+local blackout_wait_secs = site.ath9k_workaround.blackout_wait *60
+local reset_wait_secs = site.ath9k_workaround.reset_wait *60
 
 if os.difftime(os.time(), tonumber(fs.readfile(fileReset))) <= reset_wait_secs then
   os.exit(0)
