@@ -8,10 +8,10 @@ site.conf
 ---------
 
 **ath9k-workaround.blackout_wait:**
-- minimum delay to detect a possible blackout as blackout
+- minimum delay in minutes to detect a possible blackout as blackout
 
 **ath9k-workaround.reset_wait:**
-- minimum delay between reset
+- minimum delay in minutes between reset
 
 **ath9k-workaround.step_size**
 - execute the cronjob each x minutes
