@@ -7,19 +7,19 @@ we try to detect problems and restart the wifi.
 site.conf
 ---------
 
-**ath9k-workaround.blackout_wait:**
+**ath9k_workaround.blackout_wait:**
 - minimum delay in minutes to detect a possible blackout as blackout
 
-**ath9k-workaround.reset_wait:**
+**ath9k_workaround.reset_wait:**
 - minimum delay in minutes between reset
 
-**ath9k-workaround.step_size**
+**ath9k_workaround.step_size**
 - execute the cronjob each x minutes
 
 ### example
 ```lua
 {
-  ath9k-workaround = {
+  ath9k_workaround = {
     blackout_wait = 720,
     reset_wait = 1440,
     step_size = 10,
