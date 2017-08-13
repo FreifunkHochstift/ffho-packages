@@ -14,13 +14,11 @@ function time2file (file)
 end
 
 function devOk (iface)
-  local radio = uci:get_all('wireless', iface, 'device')
-  local disabled = uci:get_bool('wireless', iface, 'disabled') or uci:get_bool('wireless', radio, 'disabled')
-  if disabled then
+  local radio = uci:get('wireless', iface, 'device')
+  if uci:get_bool('wireless', iface, 'disabled') or uci:get_bool('wireless', radio, 'disabled') then
     return null
   end
-  local hwmode = uci:get_all('wireless', radio, 'hwmode')
-  if not hwmode == '11g' then
+  if uci:get('wireless', radio, 'hwmode') ~= '11g' then
     return null
   end
   local wifitype = iwinfo.type(radio)
@@ -32,16 +30,12 @@ function devOk (iface)
 end
 
 function check_wifi()
-  local ifaces = {}
+  local ok = false
   uci:foreach('wireless', 'wifi-iface',
     function(s)
-      table.insert(ifaces, s['.name'])
+      ok = ok or devOk(s['.name'])
     end
   )
-  local ok = false
-  for _, iface in ipairs(ifaces) do
-    ok = ok or devOk(iface)
-  end
   return ok
 end
 
@@ -54,8 +48,8 @@ if check_wifi() or not fs.readfile(fileOk) then
   os.exit(0)
 end
 
-local blackout_wait_secs = site.ath9k_workaround.blackout_wait *60
-local reset_wait_secs = site.ath9k_workaround.reset_wait *60
+local blackout_wait_secs = site.ath9k_workaround.blackout_wait * 60
+local reset_wait_secs = site.ath9k_workaround.reset_wait * 60
 
 if os.difftime(os.time(), tonumber(fs.readfile(fileReset))) <= reset_wait_secs then
   os.exit(0)
