@@ -1,11 +1,11 @@
 #!/usr/bin/lua
-local fs = require('nixio.fs')
+local fs = require 'nixio.fs'
 local uci = require('luci.model.uci').cursor()
-local iwinfo = require "iwinfo"
+local iwinfo = require 'iwinfo'
 local site = require 'gluon.site_config'
 
-local fileOk="/tmp/ath9k-ok"
-local fileReset="/tmp/ath9k-reset"
+local fileOk = '/tmp/ath9k-ok'
+local fileReset = '/tmp/ath9k-reset'
 
 function time2file (file)
   local f = io.open(file, 'w')
@@ -14,13 +14,11 @@ function time2file (file)
 end
 
 function devOk (iface)
-  local radio = uci:get_all('wireless', iface, 'radio')
-  local disabled = uci:get_bool('wireless', iface, 'disabled') or uci:get_bool('wireless', radio, 'disabled')
-  if disabled then
+  local radio = uci:get('wireless', iface, 'device')
+  if uci:get_bool('wireless', iface, 'disabled') or uci:get_bool('wireless', radio, 'disabled') then
     return null
   end
-  local hwmode = uci:get_all('wireless', radio, 'hwmode')
-  if not hwmode == '11g' then
+  if uci:get('wireless', radio, 'hwmode') ~= '11g' then
     return null
   end
   local wifitype = iwinfo.type(radio)
@@ -32,22 +30,13 @@ function devOk (iface)
 end
 
 function check_wifi()
-  local ifaces = {}
+  local ok = false
   uci:foreach('wireless', 'wifi-iface',
     function(s)
-      table.insert(ifaces, s['.name'])
+      ok = ok or devOk(s['.name'])
     end
   )
-  local blackout = false
-  for _, iface in ipairs(ifaces) do
-    local tmp = devOk(iface)
-    if tmp then
-      return true
-    elseif tmp == false then
-      blackout = true
-    end
-  end
-  return not blackout
+  return ok
 end
 
 if not fs.readfile(fileReset) then
@@ -59,8 +48,8 @@ if check_wifi() or not fs.readfile(fileOk) then
   os.exit(0)
 end
 
-local blackout_wait_secs = site.ath9k-workaround.blackout_wait *60
-local reset_wait_secs = site.ath9k-workaround.reset_wait *60
+local blackout_wait_secs = site.ath9k_workaround.blackout_wait * 60
+local reset_wait_secs = site.ath9k_workaround.reset_wait * 60
 
 if os.difftime(os.time(), tonumber(fs.readfile(fileReset))) <= reset_wait_secs then
   os.exit(0)
@@ -72,4 +61,4 @@ end
 
 io.popen('logger -s -t ath9k-blackout-workaround -p local0.info "blackout detected, resart wifi"')
 time2file(fileReset)
-os.execute("wifi")
+os.execute('wifi')
