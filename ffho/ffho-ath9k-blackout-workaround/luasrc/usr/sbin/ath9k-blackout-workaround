@@ -21,9 +21,11 @@ function devOk (iface)
   if uci:get('wireless', radio, 'hwmode') ~= '11g' then
     return null
   end
+
+  local ifname = uci:get('wireless', iface, 'ifname')
   local wifitype = iwinfo.type(radio)
-  local assoclist = iwinfo[wifitype].assoclist(iface)
-  if assoclist and #assoclist > 0 then
+  local assoclist = iwinfo[wifitype].assoclist(ifname)
+  if next(assoclist) then
     return true
   end
   return false
