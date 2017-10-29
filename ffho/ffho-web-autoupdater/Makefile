@@ -20,6 +20,7 @@ define Package/ffho-web-autoupdater
   TITLE:=gluon-web module for gluon-autoupdater and ffho-autoupdater-wifi-fallback
   DEPENDS:=+gluon-web-admin +ffho-autoupdater-wifi-fallback
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
+  PROVIDES:=gluon-web-autoupdater
 endef
 
 define Build/Prepare
