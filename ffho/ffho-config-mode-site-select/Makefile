@@ -14,7 +14,7 @@ define Package/ffho-config-mode-site-select
   SECTION:=ffho
   CATEGORY:=Site-select
   TITLE:=UI for changing the node-config
-  DEPENDS:=+gluon-config-mode-core-virtual +ffho-site-generate
+  DEPENDS:=+gluon-config-mode-core +ffho-site-generate
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
 endef
 
