@@ -19,8 +19,10 @@ function get_available_wifi_networks()
 	end
     local tmplist = iw.scanlist(radio)
     for _, net in ipairs(tmplist) do
-      if net.ssid and net.bssid and net.ssid:match('.*[Ff][Rr][Ee][Ii][Ff][Uu][Nn][Kk].*') then
-        table.insert (radios[radio], net)
+      if net.ssid and net.bssid then
+	if net.ssid:match('.*[Ff][Rr][Ee][Ii][Ff][Uu][Nn][Kk].*') then
+          table.insert (radios[radio], net)
+	end
       end
     end
   end
