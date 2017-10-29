@@ -1,5 +1,5 @@
 return function(form, uci)
-	local default = require 'gluon.site_config'
+	local default = require 'gluon.site'
 	local tools = require 'gluon.site_generate'
 
 	local sites = tools.get_config('/lib/gluon/site-select/sites.json')
@@ -10,7 +10,7 @@ return function(form, uci)
 	o.optional = false
 
 	if uci:get_bool('gluon-setup-mode', uci:get_first('gluon-setup-mode','setup_mode'), 'configured')  then
-		o:value(default.site_code, default.site_name)
+		o:value(default.site_code(), default.site_name())
 	else
 		o:value('')
 	end
@@ -26,7 +26,7 @@ return function(form, uci)
 			tools.set_site_code(data, false)
 		end
 
-		if data ~= default.site_code then
+		if data ~= default.site_code() then
 			os.execute('sh "/lib/gluon/site-select/site-upgrade"')
 		end
 	end

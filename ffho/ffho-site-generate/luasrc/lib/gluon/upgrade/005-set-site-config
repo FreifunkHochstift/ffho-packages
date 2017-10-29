@@ -1,7 +1,7 @@
 #!/usr/bin/lua
 
 local uci = require('simple-uci').cursor()
-local site_code = require('gluon.site_config').site_code
+local site_code = require('gluon.site').site_code()
 local tools = require 'gluon.site_generate'
 
 local groups = tools.get_config('/lib/gluon/site-select/groups.json')

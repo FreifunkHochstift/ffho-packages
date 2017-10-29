@@ -9,7 +9,7 @@ local json = require('luci.jsonc')
 local uci = require('simple-uci').cursor()
 local pretty_hostname = require 'pretty_hostname'
 
-local site = require 'gluon.site_config'
+local site = require 'gluon.site'
 local sysconfig = require 'gluon.sysconfig'
 local platform = require 'gluon.platform'
 local util = require 'gluon.util'
@@ -104,7 +104,7 @@ if oldReport==nil then
 	-- first of all, collect some generic information about the system
 	debugdata = debugdata .. "---- BEGIN SYSTEM INFORMATION ----\n"
 	debugdata = debugdata .. "Hostname:    " .. hostname .. "\n"
-	debugdata = debugdata .. "Community:   " .. site.site_name .. "\n"
+	debugdata = debugdata .. "Community:   " .. site.site_name() .. "\n"
 	debugdata = debugdata .. "Model:       " .. model .. "\n"
 	debugdata = debugdata .. "Firmware:    " .. release .. " / " .. version .. "\n"
 	debugdata = debugdata .. "MAC:         " .. primary_mac .. "\n"
@@ -237,8 +237,8 @@ else
 	print('-- My User has information that could... that could make this a free system again!')
 	local sent = 0
 	local reportname = nil
-	local port = site.debugserver.port
-	for _, host in ipairs(site.debugserver.host) do
+	local port = site.debugserver.port()
+	for _, host in ipairs(site.debugserver.host()) do
 		print('Trying to deliver debug-report to: ' .. host)
 		local sock = nixio.connect(host, port, "inet6", "stream")
 		if sock then
