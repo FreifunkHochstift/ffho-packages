@@ -1,61 +1,74 @@
 #!/usr/bin/lua
 
-local debugdata = ''
-PATH_DBG_REPORT='/tmp/debug-report.txt'
+local output_file = "/tmp/debug-report.txt"
 
-local nixio = require('nixio'), require('nixio.util')
-local fs = require 'nixio.fs'
-local json = require('luci.jsonc')
-local uci = require('simple-uci').cursor()
-local pretty_hostname = require 'pretty_hostname'
+-- includes
+local nixio = require("nixio")
+local json = require("luci.jsonc")
+local uci = require("simple-uci").cursor()
+local site = require "gluon.site"
+local util = require "gluon.util"
 
-local site = require 'gluon.site'
-local sysconfig = require 'gluon.sysconfig'
-local platform = require 'gluon.platform'
-local util = require 'gluon.util'
+-- usefull variables
+local hostname = require("pretty_hostname").get(uci)
+local primary_mac = require("gluon.sysconfig").primary_mac
+local model = require("gluon.platform").get_model()
+local version = util.trim(io.open("/lib/gluon/gluon-version"):read("*a"))
+local release = util.trim(io.open("/lib/gluon/release"):read("*a"))
 
--- some usefull functions
-local hostname = pretty_hostname.get(uci)
-local primary_mac = sysconfig.primary_mac
-local model = platform.get_model()
-local version = util.trim(fs.readfile('/lib/gluon/gluon-version'))
-local release = util.trim(fs.readfile('/lib/gluon/release'))
-local contact = uci:get_first('gluon-node-info', 'owner', 'contact', 'none')
-
-local autoupdater = uci:get('autoupdater', 'settings', 'branch')
-if not uci:get_bool('autoupdater', 'settings', 'enabled') then
-	autoupdater = 'disabled (' .. autoupdater .. ')'
-end
-
-local addresses = ''
-for line in io.lines('/proc/net/if_inet6') do
-	local matches = { line:match('^' .. string.rep('(%x%x%x%x)', 8) .. string.rep(' %x%x', 4) .. '%s+([^%s]+)$') }
-	if matches[9] == 'br-client' then
-		addresses = addresses .. '             ' .. string.format('%s:%s:%s:%s:%s:%s:%s:%s', unpack(matches)) .. '\n'
+-- get autoupdater branch
+local function autoupdate()
+	local autoupdate = uci:get("autoupdater", "settings", "branch")
+	if not uci:get_bool("autoupdater", "settings", "enabled") then
+		autoupdate = "disabled (" .. autoupdater .. ")"
 	end
+	return autoupdate
 end
 
-local data = io.open('/proc/meminfo'):read('*a')
-local fields = {}
-for k, v in data:gmatch('([^\n:]+):%s*(%d+) kB') do
-	fields[k] = tonumber(v)
+-- get mesh IPs
+local function addresses()
+	local addr = {}
+	for line in io.popen("ip -family inet6 address show dev br-client"):lines() do
+		local tmp = line:match("inet6%s+(%S+)%s+scope") or false
+		if tmp then
+			table.insert(addr, tmp)
+		end
+	end
+	return addr
 end
 
-local pubkey = util.trim(io.popen('/etc/init.d/fastd show_key mesh_vpn'):read('*a'))
-if pubkey == '' then pubkey = 'none' end
+-- get memory usage
+local function memory()
+	local fields = {}
+	for k, v in io.open("/proc/meminfo"):read("*a"):gmatch("([^\n:]+):%s*(%d+) kB") do
+		fields[k] = tonumber(v)
+	end
+	return string.format("%.1f %% used, %.1f %% free",(fields.MemTotal-fields.MemFree)/fields.MemTotal*100,fields.MemFree/fields.MemTotal*100)
+end
 
+-- get fastd public key
+local function pubkey()
+	local key = util.trim(io.popen("/etc/init.d/fastd show_key mesh_vpn"):read("*a"))
+	if key == "" then
+		return "none"
+	end
+	return key
+end
+
+-- get location
 local function location()
-	local text = 'none'
-	local locationid = uci:get_first('gluon-node-info', 'location')
+	local text = "none"
+	local locationid = uci:get_first("gluon-node-info", "location")
 	if locationid then
-		local location = uci:get_all('gluon-node-info', locationid)
-		if uci:get_bool('gluon-node-info', locationid, 'share_location') and location.latitude and location.longitude then
-			text = location.latitude .. ', ' .. location.longitude
+		local location = uci:get_all("gluon-node-info", locationid)
+		if uci:get_bool("gluon-node-info", locationid, "share_location") and location.latitude and location.longitude then
+			text = location.latitude .. ", " .. location.longitude
 		end
 	end
 	return text
 end
 
+-- get ip address type
 local function ip_proto(address)
 	if address:match("%.") then
 		return "IPv4"
@@ -67,208 +80,145 @@ local function ip_proto(address)
 end
 
 -- wrapper for calling systemcommands
-local function cmd(_command)
-	local f = io.popen(_command)
-	local l = f:read("*a")
-	f:close()
-	return "# " .. _command .. ": \n" .. l .. "\n"
+local function cmd(command)
+	local l = io.popen(command .. " 2>&1"):read("*a")
+	return "\n# " .. command .. "\n" .. l
 end
 
 -- read contents of a given file
-local function readFile(_file)
-	local f = io.open(_file, "r")
-	if f~=nil then
-		local l = f:read("*a")
-		f:close()
-		return "--- Content of file " .. _file .. " ---\n" .. l .. "\n\n"
-	else
-		return ""
-	end
+local function read_file(file)
+	local l = io.open(file, "r"):read("*a")
+	return "\n" .. file .. ":\n" .. l
 end
 
--- Should we enter local mode?
-localMode = false
-if arg[1] == '-l' then
-	localMode = true
+-- blank variables
+local function blank(string, key)
+	string = string:gsub(key .. "[^\n]+", key .. " -blanked-")
+	return string
 end
 
--- search for existing debug report
-local oldReport = nixio.open(PATH_DBG_REPORT, "r")
-if oldReport==nil then
-	-- no existing debugreport, let's generate a new one
+-- open output file in write mode
+print("Generating report ...")
+local out = io.open(output_file, "w")
 
-	-- inform the User ;)
-	print('-- Hello, Mr. Dillinger. Thank you for coming back early.')
-	print('-- Sit right there; make yourself comfortable. Remember the time we spent play chess together?')
+-- first of all, collect some generic information about the system
+out:write("---- BEGIN SYSTEM INFORMATION ----")
+out:write("\nHostname:    " .. hostname)
+out:write("\nCommunity:   " .. site.site_name())
+out:write("\nModel:       " .. model)
+out:write("\nFirmware:    " .. release .. " / " .. version)
+out:write("\nMAC:         " .. primary_mac)
+out:write("\nContact:     " .. uci:get_first("gluon-node-info", "owner", "contact", "none"))
+out:write("\nUptime:      " .. util.trim(io.popen("uptime"):read("*a")))
+out:write("\nAutoupdater: " .. autoupdate())
+out:write("\nLocation:    " .. location())
+out:write("\nIPs:         " .. table.concat(addresses(), "\n             "))
+out:write("\nPubkey:      " .. pubkey())
+out:write("\nMemory:      " .. memory())
+out:write("\n---- END SYSTEM INFORMATION ----\n\n")
 
-	-- first of all, collect some generic information about the system
-	debugdata = debugdata .. "---- BEGIN SYSTEM INFORMATION ----\n"
-	debugdata = debugdata .. "Hostname:    " .. hostname .. "\n"
-	debugdata = debugdata .. "Community:   " .. site.site_name() .. "\n"
-	debugdata = debugdata .. "Model:       " .. model .. "\n"
-	debugdata = debugdata .. "Firmware:    " .. release .. " / " .. version .. "\n"
-	debugdata = debugdata .. "MAC:         " .. primary_mac .. "\n"
-	debugdata = debugdata .. "Contact:     " .. contact .. "\n"
-	debugdata = debugdata .. "Uptime:      " .. util.trim(io.popen("uptime | sed 's/^ \+//'"):read('*a')) .. '\n'
-	debugdata = debugdata .. "Autoupdater: " .. autoupdater .. "\n"
-	debugdata = debugdata .. "Location:    " .. location() .. "\n"
-	debugdata = debugdata .. "IPs:         " .. util.trim(addresses) .. "\n"
-	debugdata = debugdata .. 'Pubkey:      ' .. pubkey .. '\n'
-	debugdata = debugdata .. "Memory:      " .. string.format("%.1f %% used, %.1f %% free\n",(fields.MemTotal-fields.MemFree)/fields.MemTotal*100,fields.MemFree/fields.MemTotal*100)
+-- show cron jobs
+out:write("---- BEGIN CRON JOBS ----")
+for name in io.popen("ls /usr/lib/micron.d/"):lines() do
+	out:write(read_file("/usr/lib/micron.d/" .. name))
+end
+out:write("---- END CRON JOBS ----\n\n")
 
-	debugdata = debugdata .. cmd("ps w")
-	debugdata = debugdata .. "---- END SYSTEM INFORMATION ----\n\n"
+-- get autoupdater status
+out:write("---- BEGIN AUTOUPDATER INFORMATION ----")
+out:write(cmd("uci show autoupdater"))
+out:write(cmd("uci show autoupdater-wifi-fallback"))
+out:write("---- END AUTOUPDATER INFORMATION ----\n\n")
 
-    -- show uci variables
-	debugdata = debugdata .. "---- BEGIN UCI VARIABLES ----\n"
-	debugdata = debugdata .. cmd("uci show | grep -v '\.key' | grep -v '\.secret'")
-	debugdata = debugdata .. "---- END UCI VARIABLES ----\n\n"
+-- now get some information about the network status
+out:write("---- BEGIN IP AND ROUTUNG INFORMATION ----")
+out:write(cmd("uci show network"))
+out:write(cmd("ip addr show"))
+out:write(cmd("ip route show"))
+out:write(cmd("ip -6 route show"))
+out:write("---- END IP AND ROUTUNG INFORMATION ----\n\n")
 
-	-- show cron jobs
-	debugdata = debugdata .. "---- BEGIN CRON JOBS ----\n"
-	debugdata = debugdata .. cmd("grep -r \"\" /usr/lib/micron.d/ | sed -e \"s/:/:\\n/\"")
-	debugdata = debugdata .. "---- END CRON JOBS ----\n\n"
+-- get wireless status
+out:write("---- BEGIN WIRELESS INFORMATION ----")
+out:write(blank(cmd("uci show wireless"), "\.key="))
+for ifname in io.popen("iw dev"):read("*a"):gmatch("Interface%s([^\n]+)") do
+	out:write(cmd("iwinfo " .. ifname .. " info"))
+	if ifname:match("ibss") or ifname:match("mesh") then
+		out:write(cmd("iwinfo " .. ifname .. " assoclist 2>&1"))
+	end
+end
+out:write("---- END WIRELESS INFORMATION ----\n\n")
 
-	-- now get some information about the network status
-	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n"
-	debugdata = debugdata .. cmd("ip addr show")
-	debugdata = debugdata .. cmd("ip route show")
-	debugdata = debugdata .. cmd("ip -6 route show")
-	debugdata = debugdata .. "---- BEGIN IP AND ROUTUNG INFORMATION ----\n\n"
+-- get batman status
+out:write("---- BEGIN BATMAN STATUS ----")
+out:write(cmd("uci show batman-adv"))
+out:write(cmd("batctl gateways"))
+out:write(cmd("batctl neighbors"))
+out:write(cmd("batctl interface"))
+out:write("---- END BATMAN STATUS ----\n\n")
 
-	-- get wireless status
-	debugdata = debugdata .. "---- BEGIN WIRELESS INFORMATION ----\n"
-	local interfaces = io.popen("iw dev | grep Interface | cut -d' ' -f2"):read('*a')
-	for ifname in interfaces:gmatch('%S+') do
-		debugdata = debugdata .. cmd("iwinfo " .. ifname .. " info 2>&1")
-		if ifname:match('ibss') or ifname:match('mesh') then
-			debugdata = debugdata .. cmd("iwinfo " .. ifname .. " assoclist 2>&1")
+-- get fastd status
+out:write("---- BEGIN FASTD STATUS ----")
+out:write(blank(cmd("uci show fastd"), "\.secret="))
+out:write(cmd("uci show simple-tc"))
+
+local stat, fastd_status = pcall(
+	function()
+		local fastd_sock = nixio.socket("unix", "stream")
+		assert(fastd_sock:connect("/var/run/fastd.mesh_vpn.socket"))
+
+		local decoder = json.new()
+		local sink = decoder:sink()
+
+		while true do
+			local chunk = fastd_sock:read(2048)
+			if not chunk or chunk:len() == 0 then break end
+			sink(chunk)
+		end
+
+		return assert(decoder:get())
+	end
+)
+
+if stat then
+	out:write(string.format("\nfastd running for %.1f minutes\n", fastd_status.uptime/60000))
+
+	local peers = 0
+	local connections = 0
+	for key, peer in pairs(fastd_status.peers) do
+		peers = peers + 1
+
+		if peer.connection then
+			connections = connections + 1
 		end
 	end
-	debugdata = debugdata .. "---- END WIRELESS INFORMATION ----\n\n"
+	out:write(string.format("There are %i peers configured, of which %i are connected:\n", peers, connections))
 
-	-- get batman status
-	debugdata = debugdata .. "---- BEGIN BATMAN STATUS ----\n"
-	debugdata = debugdata .. cmd("batctl gwl")
-	debugdata = debugdata .. cmd("batctl tl")
-	debugdata = debugdata .. "---- END BATMAN STATUS ----\n\n"
-
-	-- get fastd status
-	debugdata = debugdata .. "---- BEGIN FASTD STATUS ----\n"
-	if string.len(io.popen("ip -f inet address show dev br-wan | grep global"):read('*a')) >= 2 then
-		debugdata = debugdata .. "IPv4 configured\n"
-	else
-		debugdata = debugdata .. "IPv4 not configured\n"
-	end
-
-	if string.len(io.popen("ip -f inet6 address show dev br-wan | grep global"):read('*a')) >= 2 then
-		debugdata = debugdata .. "IPv6 configured\n"
-	else
-		debugdata = debugdata .. "IPv6 not configured\n"
-	end
-
-	local stat, fastd_status = pcall(
-		function()
-			local fastd_sock = nixio.socket('unix', 'stream')
-			assert(fastd_sock:connect('/var/run/fastd.mesh_vpn.socket'))
-
-			local decoder = json.new()
-			local sink = decoder:sink()
-
-			while true do
-				local chunk = fastd_sock:read(2048)
-				if not chunk or chunk:len() == 0 then break end
-				sink(chunk)
-			end
-
-			return assert(decoder:get())
+	for key, peer in pairs(fastd_status.peers) do
+		out:write(peer.name .. ": ")
+		if peer.connection then
+			out:write(string.format("connected for %.1f minutes via %s\n", peer.connection.established/60000, ip_proto(peer.address)))
+		else
+			out:write("not connected\n")
 		end
-	)
-
-	if stat then
-		debugdata = debugdata .. string.format("fastd running for %.3f seconds\n", fastd_status.uptime/1000)
-
-		local peers = 0
-		local connections = 0
-		for key, peer in pairs(fastd_status.peers) do
-			peers = peers+1
-
-			if peer.connection then
-				connections = connections+1
-			end
-		end
-		debugdata = debugdata .. string.format("There are %i peers configured, of which %i are connected:\n", peers, connections)
-
-		for key, peer in pairs(fastd_status.peers) do
-			debugdata = debugdata .. peer.name .. ": "
-			if peer.connection then
-				debugdata = debugdata .. string.format("connected for %.3f seconds via %s\n", peer.connection.established/1000, ip_proto(peer.address))
-			else
-				debugdata = debugdata .. "not connected\n"
-			end
-		end
-	else
-		debugdata = debugdata .. "fastd not running\n"
 	end
-	debugdata = debugdata .. "---- END FASTD STATUS ----\n\n"
-
-	-- get log
-	debugdata = debugdata .. "---- BEGIN LOGREAD ----\n"
-	debugdata = debugdata .. cmd("logread")
-	debugdata = debugdata .. "---- END LOGREAD ----\n\n"
-
-	debugdata = debugdata .. "---- BEGIN DMESG KERNEL LOG ----\n"
-	debugdata = debugdata .. cmd("dmesg")
-	debugdata = debugdata .. "---- END DMESG KERNEL LOG ----\n\n"
 else
-	print('Orphaned debug-report file found.')
-	print('-- You wouldn\'t want me to dig up Flynn\'s file and read it up on a VDT at The Times, would you?')
-	debugdata = oldReport:readall()
-	oldReport:close()
+	out:write("\nfastd not running\n")
 end
+out:write("---- END FASTD STATUS ----\n\n")
 
--- if local mode is requested print the report, otherwise send it to the admin team
-if localMode then
-	print('Omitting to send the report data to a report-server')
-	print('-- Sark! All of my functions are now yours. Take them!:')
-	print(debugdata)
-	nixio.fs.unlink(PATH_DBG_REPORT)
-else
-	print('-- My User has information that could... that could make this a free system again!')
-	local sent = 0
-	local reportname = nil
-	local port = site.debugserver.port()
-	for _, host in ipairs(site.debugserver.host()) do
-		print('Trying to deliver debug-report to: ' .. host)
-		local sock = nixio.connect(host, port, "inet6", "stream")
-		if sock then
-			sock:setopt('socket', 'sndtimeo', 30.0)
-			sock:setopt('socket', 'rcvtimeo', 30.0)
-			sent = sock:writeall(debugdata)
-			if sent == debugdata:len() then
-				-- half-side close to indicate the end of our transmission
-				sock:shutdown('wr')
-				print('Transmission succeeded. Waiting for report-name.')
-				reportname = sock:readall(256)
-			end
-			sock:close()
-			if reportname ~= nil then break end
-		end
-	end
+-- get processes
+out:write("---- BEGIN PROCESS INFORMATION ----")
+out:write(cmd("ps ww"))
+out:write("---- END PROCESS INFORMATION ----\n\n")
 
-	if reportname ~= nil then
-		print('\nYour report has been stored at the debug-server with the name: ' .. reportname)
-		print('-- With the information I can access, I can run things 900 to 1200 times better than any human.')
-	else
-		print('Sorry, I couldn\'t send the report.')
-		print('-- If you are a User, then everything you\'ve done so far has been according to a plan, right?')
-		print('-- I will try it again the next time you run me. See you soon ...')
-		local f = nixio.open(PATH_DBG_REPORT, 'w')
-		f:writeall(debugdata)
-		f:close()
-	end
-end
+-- get log
+out:write("---- BEGIN LOG ----")
+out:write(cmd("logread"))
+out:write(cmd("dmesg"))
+out:write("---- END LOG ----\n\n")
 
-print("-- You've almost reached your decision gate, and I cannot spare you any more time. End of Line.")
-
+-- finish, close file and inform the user
+out:close()
+print("Your report has been stored at: " .. output_file )
 os.exit(0)
