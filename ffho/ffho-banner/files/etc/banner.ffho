@@ -10,6 +10,6 @@
            https://webirc.hackint.org/?#ffho   (Chat)
 
   Deine FFHO-Werkzeuge:
-  - ffho-debug        (Debug-Report für Unterstützung senden)
+  - debug-report      (Debug-Report erstellen)
   - autoupdater -f    (Firmware-Update erzwingen)
 
