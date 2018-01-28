@@ -1,0 +1,10 @@
+nodefault 'autoupdater-fallback'
+
+packages 'autoupdater-fallback' \
+	'ffho-autoupdater-wifi-fallback'
+
+packages 'autoupdater-fallback & web-wizard' \
+	'gluon-config-mode-autoupdater'
+
+packages 'autoupdater-fallback & web-advanced' \
+	'ffho-web-autoupdater'
