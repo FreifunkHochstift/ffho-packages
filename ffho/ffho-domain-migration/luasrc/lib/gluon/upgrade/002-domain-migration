@@ -13,7 +13,15 @@ if uci:get('gluon', 'system') then
 end
 if fs.stat(file) then
 	local domain = uci:get('currentsite', 'current', 'name')
-	uci:set('gluon', 'core', 'domain', domain:match('^ffho_(.*)$') or domain)
+
+	-- We can't use gluon.site yet, as it depends on gluon.core.domain to be set
+	local json = require 'jsonc'
+	local site = assert(json.load('/lib/gluon/site.json'))
+
+	if (site.domain_migration or {}).match then
+		domain = domain:match(site.domain_migration.match) or domain
+	end
+	uci:set('gluon', 'core', 'domain', domain)
 	fs.remove(file)
 end
 

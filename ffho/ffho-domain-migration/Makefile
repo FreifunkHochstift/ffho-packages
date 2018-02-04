@@ -34,4 +34,9 @@ define Package/ffho-domain-migration/install
 	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
 endef
 
+define Package/ffho-domain-migration/postinst
+#!/bin/sh
+$(call GluonCheckSite,check_site.lua)
+endef
+
 $(eval $(call BuildPackage,ffho-domain-migration))
