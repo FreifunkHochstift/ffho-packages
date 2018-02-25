@@ -1,6 +1,0 @@
-#!/bin/sh
-#this script is the same as zzz-gluon-upgrade
-
-for script in /lib/gluon/upgrade/*; do
-	"$script"
-done
