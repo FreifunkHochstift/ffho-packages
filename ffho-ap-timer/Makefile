@@ -19,20 +19,4 @@ define Package/ffho-ap-timer/description
 	Timer for the client wifi
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
-	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
-endef
-
-define Package/ffho-ap-timer/install
-	$(CP) ./files/* $(1)/
-	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-endef
-
-$(eval $(call BuildPackage,ffho-ap-timer))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))

@@ -16,22 +16,4 @@ define Package/ffho-autoupdater-wifi-fallback
   MAINTAINER:=Freifunk Hochstift <kontakt@hochstift.freifunk.net>
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef
-
-define Build/Compile
-	$(call Build/Compile/Default)
-	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
-endef
-
-define Package/ffho-autoupdater-wifi-fallback/install
-	$(CP) ./files/* $(1)/
-	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-
-	$(INSTALL_DIR) $(1)/lib/gluon/respondd
-	$(CP) $(PKG_BUILD_DIR)/respondd.so $(1)/lib/gluon/respondd/autoupdater-wifi-fallback.so
-endef
-
-$(eval $(call BuildPackage,ffho-autoupdater-wifi-fallback))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))

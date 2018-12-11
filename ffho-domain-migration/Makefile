@@ -19,24 +19,9 @@ define Package/ffho-domain-migration/description
 	Migration script for gluon multidomain support
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
-	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
-endef
-
-define Package/ffho-domain-migration/install
-	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-endef
-
 define Package/ffho-domain-migration/postinst
 #!/bin/sh
 $(call GluonCheckSite,check_site.lua)
 endef
 
-$(eval $(call BuildPackage,ffho-domain-migration))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))

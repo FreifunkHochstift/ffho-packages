@@ -19,25 +19,9 @@ define Package/ffho-ath9k-blackout-workaround/description
 	Restartes the wifi if possible blckout is detected.
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
-	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
-endef
-
-define Package/ffho-ath9k-blackout-workaround/install
-	$(CP) ./files/* $(1)/
-	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-endef
-
 define Package/ffho-ath9k-blackout-workaround/postinst
 #!/bin/sh
 $(call GluonCheckSite,check_site.lua)
 endef
 
-$(eval $(call BuildPackage,ffho-ath9k-blackout-workaround))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))

@@ -19,19 +19,4 @@ define Package/ffho-debug/description
 	Debug scripts for FFHO
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
-	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
-endef
-
-define Package/ffho-debug/install
-	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-endef
-
-$(eval $(call BuildPackage,ffho-debug))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))
