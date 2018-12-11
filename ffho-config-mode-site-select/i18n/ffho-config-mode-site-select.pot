@@ -1,5 +1,11 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
+msgid ""
+"Here you have the possibility of selecting the region in which your node is "
+"placed. Please keep in mind that your router connects only with the mesh of "
+"the selected region."
+msgstr ""
+
 msgid "Region"
 msgstr ""

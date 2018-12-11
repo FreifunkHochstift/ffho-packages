@@ -1,26 +1,13 @@
 #!/usr/bin/lua
 
 local uci = require('simple-uci').cursor()
-local json =  require 'luci.jsonc'
+local json =  require 'jsonc'
 local sites_json = '/lib/gluon/site-select/sites.json'
 
 module('gluon.site_generate', package.seeall)
 
 function get_config(file)
-  local decoder = json.new()
-  local sink = decoder:sink()
-
-  local f = assert(io.open(file))
-
-  while true do
-    local chunk = f:read(2048)
-    if not chunk or chunk:len() == 0 then break end
-    sink(chunk)
-  end
-
-  f:close()
-
-  return assert(decoder:get())
+  return assert(json.load(sites_json))
 end
 
 function get_list()

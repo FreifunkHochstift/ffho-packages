@@ -3,8 +3,15 @@ return function(form, uci)
 	local tools = require 'gluon.site_generate'
 
 	local sites = tools.get_config('/lib/gluon/site-select/sites.json')
-	
-	local s = form:section(Section, nil, translate('gluon-config-mode:site-select'))
+
+	local site_i18n = i18n 'gluon-site'
+	local pkg_i18n = i18n 'ffho-config-mode-site-select'
+	local help = site_i18n._translate('gluon-config-mode:site-select') or pkg_i18n.translate(
+		'Here you have the possibility of selecting the region in which '
+		.. 'your node is placed. Please keep in mind that your router '
+		.. 'connects only with the mesh of the selected region.'
+	)
+	local s = form:section(Section, nil, help)
 
 	local o = s:option(ListValue, 'community', translate('Region'))
 	o.optional = false

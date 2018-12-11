@@ -13,17 +13,19 @@ local uci = require('simple-uci').cursor()
 local autoupdater = uci:get_first('autoupdater', 'autoupdater')
 local wifi_fallback = uci:get_first('autoupdater-wifi-fallback', 'autoupdater-wifi-fallback')
 
-local f = Form(translate('Automatic updates'))
+local pkg_i18n = i18n 'ffho-web-autoupdater'
+
+local f = Form(pkg_i18n.translate('Automatic updates'))
 local s = f:section(Section)
 local o
 
-o = s:option(Flag, 'enabled', translate('Enable'))
+o = s:option(Flag, 'enabled', pkg_i18n.translate('Enable'))
 o.default = uci:get_bool('autoupdater', autoupdater, 'enabled')
 function o:write(data)
 	uci:set('autoupdater', autoupdater, 'enabled', data)
 end
 
-o = s:option(ListValue, 'branch', translate('Branch'))
+o = s:option(ListValue, 'branch', pkg_i18n.translate('Branch'))
 uci:foreach('autoupdater', 'branch',
 	function (section)
 		o:value(section['.name'])
@@ -34,7 +36,7 @@ function o:write(data)
 	uci:set('autoupdater', autoupdater, 'branch', data)
 end
 
-o = s:option(Value, "minute", translate("Minute"), translate(
+o = s:option(Value, "minute", translate("Minute"), pkg_i18n.translate(
 	"This value forces the autoupdater to check for updates at the "
 	.. "specified minute. Normally there is no need to set this value "
 	.. "because it is selected automatically. You may want to set this to "

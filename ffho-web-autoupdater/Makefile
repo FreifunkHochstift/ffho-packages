@@ -10,9 +10,6 @@ PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(TOPDIR)/../package/gluon.mk
 
-PKG_CONFIG_DEPENDS += $(GLUON_I18N_CONFIG)
-
-
 define Package/ffho-web-autoupdater
   SECTION:=ffho
   CATEGORY:=FFHO
@@ -22,21 +19,4 @@ define Package/ffho-web-autoupdater
   PROVIDES:=gluon-web-autoupdater
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
-	$(call GluonBuildI18N,ffho-web-autoupdater,i18n)
-	$(call GluonSrcDiet,./luasrc,$(PKG_BUILD_DIR)/luadest/)
-endef
-
-define Package/ffho-web-autoupdater/install
-	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-	$(call GluonInstallI18N,ffho-web-autoupdater,$(1))
-endef
-
-$(eval $(call BuildPackage,ffho-web-autoupdater))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))
