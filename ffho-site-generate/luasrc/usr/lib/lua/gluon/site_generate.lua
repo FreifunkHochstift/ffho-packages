@@ -7,7 +7,7 @@ local sites_json = '/lib/gluon/site-select/sites.json'
 module('gluon.site_generate', package.seeall)
 
 function get_config(file)
-  return assert(json.load(sites_json))
+  return assert(json.load(file))
 end
 
 function get_list()
