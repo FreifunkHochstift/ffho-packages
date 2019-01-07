@@ -17,9 +17,7 @@ return function(form, uci)
 	o.optional = false
 
 	if uci:get_bool('gluon-setup-mode', uci:get_first('gluon-setup-mode','setup_mode'), 'configured')  then
-		o:value(default.site_code(), default.site_name())
-	else
-		o:value('')
+		o.default = default.site_code()
 	end
 
 	for _, site in pairs(sites) do
