@@ -1,6 +1,6 @@
 #!/usr/bin/lua
 
-local fs = require 'nixio.fs'
+local sys_stat = require 'posix.sys.stat'
 local uci = require("simple-uci").cursor()
 
 local file = '/etc/config/currentsite'
@@ -11,7 +11,7 @@ end
 if uci:get('gluon', 'system') then
 	uci:delete('gluon', 'system')
 end
-if fs.stat(file) then
+if sys_stat.stat(file) then
 	local domain = uci:get('currentsite', 'current', 'name')
 
 	-- We can't use gluon.site yet, as it depends on gluon.core.domain to be set
@@ -22,7 +22,7 @@ if fs.stat(file) then
 		domain = domain:match(site.domain_migration.match) or domain
 	end
 	uci:set('gluon', 'core', 'domain', domain)
-	fs.remove(file)
+	os.remove(file)
 end
 
 uci:save('gluon')

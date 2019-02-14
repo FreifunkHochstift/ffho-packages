@@ -1,5 +1,4 @@
 #!/usr/bin/lua
-local fs = require 'nixio.fs'
 local uci = require('simple-uci').cursor()
 local autil = require 'autoupdater-wifi-fallback.util'
 local util = require 'gluon.util'
@@ -38,7 +37,10 @@ local function preflight_check()
   if not uci:get_bool('autoupdater', 'settings', 'enabled') then
     return false
   end
-  if tonumber(fs.readfile('/proc/uptime'):match('^([^ ]+) ')) < min_uptime_secs then
+  local f = io.open('/proc/uptime')
+  local c = f.read "*a"
+  f:close()
+  if tonumber(c:match('^([^ ]+) ')) < min_uptime_secs then
     return false
   end
 
