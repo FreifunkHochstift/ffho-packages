@@ -38,7 +38,7 @@ local function preflight_check()
     return false
   end
   local f = io.open('/proc/uptime')
-  local c = f.read "*a"
+  local c = f:read "*a"
   f:close()
   if tonumber(c:match('^([^ ]+) ')) < min_uptime_secs then
     return false
