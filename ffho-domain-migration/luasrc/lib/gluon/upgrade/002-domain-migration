@@ -18,9 +18,6 @@ if sys_stat.stat(file) then
 	local json = require 'jsonc'
 	local site = assert(json.load('/lib/gluon/site.json'))
 
-	if (site.domain_migration or {}).match then
-		domain = domain:match(site.domain_migration.match) or domain
-	end
 	uci:set('gluon', 'core', 'domain', domain)
 	os.remove(file)
 end
