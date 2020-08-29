@@ -48,10 +48,10 @@ local function preflight_check()
 end
 
 local function connectivity_check()
-  local f = io.open('/sys/kernel/debug/batman_adv/bat0/gateways', 'r')
+  local f = io.popen('batctl gwl -nH', 'r')
   if f then
     for line in f:lines() do
-      local gateway_mac = line:match('^=?>? +([0-9a-f:]+)')
+      local gateway_mac = line:match('^[ *]+([0-9a-f:]+)')
       if gateway_mac then
         if os.execute('batctl ping -t5 -c1 ' .. gateway_mac .. ' > /dev/null 2>&1') == 0 then
           return true
