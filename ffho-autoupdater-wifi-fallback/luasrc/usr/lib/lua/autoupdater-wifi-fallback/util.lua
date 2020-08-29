@@ -33,7 +33,7 @@ function get_update_hosts(branch)
   local mirrors = uci:get_list('autoupdater', branch, 'mirror')
 
   for _, mirror in ipairs(mirrors) do
-    local host = mirror:match('://%[?([a-zA-Z0-9\:\.]+)%]?/')
+    local host = mirror:match('://%[?([a-zA-Z0-9\-\:\.]+)%]?/')
     table.insert(hosts, 1, host)
   end
   return hosts
