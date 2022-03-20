@@ -1,10 +1,5 @@
-nodefault 'autoupdater-fallback'
+feature('autoupdater-fallback', {'ffho-autoupdater-wifi-fallback'})
 
-packages 'autoupdater-fallback' \
-	'ffho-autoupdater-wifi-fallback'
+when(_'autoupdater-fallback' and _'web-wizard', {'gluon-config-mode-autoupdater'})
 
-packages 'autoupdater-fallback & web-wizard' \
-	'gluon-config-mode-autoupdater'
-
-packages 'autoupdater-fallback & web-advanced' \
-	'ffho-web-autoupdater'
+when(_'autoupdater-fallback' and _' web-advanced', {'ffho-web-autoupdater'})
